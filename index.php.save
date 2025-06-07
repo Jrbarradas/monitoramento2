@@ -1,0 +1,373 @@
+<?php
+require_once "config.php";
+$links = $pdo->query("SELECT * FROM links")->fetchAll(PDO::FETCH_ASSOC);
+
+$estados = [];
+foreach ($links as $link) {
+    $uf = $link['uf'];
+    if (!isset($estados[$uf])) {
+        $estados[$uf] = [];
+    }
+    $estados[$uf][] = $link;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Monitoramento de Links Spacecom</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            height: 60px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .botao-menu {
+            background: #3498db;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: relative;
+            margin-right: 15px;
+        }
+
+        .botao-menu:hover {
+            background: #2980b9;
+            transform: rotate(180deg);
+        }
+
+        .botao-menu__linha {
+            width: 20px;
+            height: 2px;
+            background: white;
+            transition: 0.3s;
+            position: absolute;
+        }
+
+        .botao-menu__linha:nth-child(1) { transform: translateY(-6px); }
+        .botao-menu__linha:nth-child(3) { transform: translateY(6px); }
+
+        .menu-lateral {
+            position: fixed;
+            left: -250px;
+            top: 60px;
+            height: calc(100vh - 60px - 50px);
+            width: 250px;
+            background: #34495e;
+            transition: 0.3s;
+            z-index: 1001;
+            padding-top: 20px;
+	    overflow-y: auto;
+        }
+
+        .menu-lateral.aberto {
+            left: 0;
+        }
+
+        .menu-lateral nav {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+        }
+
+        .menu-lateral a {
+            color: white;
+            text-decoration: none;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+
+        .menu-lateral a:hover {
+            background: #2c3e50;
+        }
+
+        .conteudo {
+            margin: 80px 20px 70px;
+            transition: 0.3s;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .estado-card {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #cccccc;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+        }
+
+        .estado-card:hover {
+            transform: scale(1.05);
+        }
+
+        .uf {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .count {
+            color: white;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .online {
+            background: #28a745 !important;
+        }
+
+        .offline {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0% { background: #dc3545; }
+            50% { background: #a71d2b; }
+            100% { background: #dc3545; }
+        }
+
+        .rodape {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px 20px;
+            font-size: 0.9rem;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            z-index: 999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .atualizacao-contador {
+            font-family: monospace;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="botao-menu" id="botao-menu">
+            <span class="botao-menu__linha"></span>
+            <span class="botao-menu__linha"></span>
+            <span class="botao-menu__linha"></span>
+        </button>
+        <h1>Monitoramento de Links Spacecom</h1>
+    </div>
+
+    <div class="menu-lateral" id="menu">
+        <nav>
+            <a href="index.php"><i class="fas fa-home"></i>Home</a>
+            <a href="cadastrar.php"><i class="fas fa-plus-circle"></i>Cadastrar Link</a>
+            <a href="dashboard.php"><i class="fas fa-chart-line"></i>Lista de Links</a>
+            <a href="teste_ping.php"><i class="fas fa-network-wired"></i>Teste de Ping</a>
+            <a href="mapa.php"><i class="fas fa-map-marked-alt"></i>Mapa de Rede</a>
+        </nav>
+    </div>
+
+    <div class="conteudo">
+        <div class="cards-container">
+            <?php foreach ($estados as $uf => $linksEstado): ?>
+                <div class="estado-card" 
+                     data-ips="<?= htmlspecialchars(json_encode(array_column($linksEstado, 'ip'))) ?>">
+                    <div class="uf"><?= htmlspecialchars($uf) ?></div>
+                    <div class="count"><?= count($linksEstado) ?> links</div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <div class="rodape">
+        <div>Spacecom Monitoramento S/A © 2025</div>
+        <div class="atualizacao-contador" id="contador">Atualizando em: 5s</div>
+    </div>
+
+    <script>
+        // Controle do Menu
+        const menuBtn = document.getElementById('botao-menu');
+        const menu = document.getElementById('menu');
+        const body = document.body;
+
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('aberto');
+            body.classList.toggle('menu-aberto');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!menu.contains(e.target) && !menuBtn.contains(e.target)) {
+                menu.classList.remove('aberto');
+                body.classList.remove('menu-aberto');
+            }
+        });
+
+        // Sistema de Atualização e Contador
+        let ultimaInteracao = Date.now();
+        let tempoRestante = 5;
+        let contadorInterval;
+
+        function iniciarContador() {
+            clearInterval(contadorInterval);
+            tempoRestante = 5;
+            atualizarContador();
+            
+            contadorInterval = setInterval(() => {
+                tempoRestante--;
+                atualizarContador();
+                
+                if(tempoRestante <= 0) {
+                    clearInterval(contadorInterval);
+                    document.getElementById('contador').textContent = "Atualizando agora...";
+                }
+            }, 1000);
+        }
+
+        function atualizarContador() {
+            document.getElementById('contador').textContent = 
+                `Atualizando em: ${tempoRestante}s`;
+        }
+
+        async function verificarStatus() {
+            document.querySelectorAll('.estado-card').forEach(card => {
+                const ips = JSON.parse(card.dataset.ips);
+                let todosOnline = true;
+                
+                ips.forEach(ip => {
+                    fetch(`ping.php?ip=${encodeURIComponent(ip)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if(data.status === 'offline') todosOnline = false;
+                        });
+                });
+
+                card.classList.remove('online', 'offline');
+                card.classList.add(todosOnline ? 'online' : 'offline');
+            });
+        }
+
+        function atualizarConteudo() {
+            fetch(window.location.href, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const novoDoc = new DOMParser().parseFromString(html, 'text/html');
+                const novosCards = novoDoc.querySelector('.cards-container').innerHTML;
+                document.querySelector('.cards-container').innerHTML = novosCards;
+                iniciarContador();
+                verificarStatus();
+            });
+        }
+
+        // Iniciar sistemas
+        iniciarContador();
+        setInterval(() => {
+            if(Date.now() - ultimaInteracao > 5000) {
+                atualizarConteudo();
+            }
+        }, 5000);
+
+        // Monitorar interações
+        document.addEventListener('click', () => {
+            ultimaInteracao = Date.now();
+            iniciarContador();
+        });
+        
+        document.addEventListener('keypress', () => {
+            ultimaInteracao = Date.now();
+            iniciarContador();
+        });
+
+        // Verificação inicial
+        verificarStatus();
+    </script>
+</body>
+</html>
+
+
+<?php
+function getNomeEstado($uf) {
+    $estados = [
+        'AC' => 'Acre',
+        'AL' => 'Alagoas',
+        'AP' => 'Amapá',
+        'AM' => 'Amazonas',
+        'BA' => 'Bahia',
+        'CE' => 'Ceará',
+        'DF' => 'Distrito Federal',
+        'ES' => 'Espírito Santo',
+        'GO' => 'Goiás',
+        'MA' => 'Maranhão',
+        'MT' => 'Mato Grosso',
+        'MS' => 'Mato Grosso do Sul',
+        'MG' => 'Minas Gerais',
+        'PA' => 'Pará',
+        'PB' => 'Paraíba',
+        'PR' => 'Paraná',
+        'PE' => 'Pernambuco',
+        'PI' => 'Piauí',
+        'RJ' => 'Rio de Janeiro',
+        'RN' => 'Rio Grande do Norte',
+        'RS' => 'Rio Grande do Sul',
+        'RO' => 'Rondônia',
+        'RR' => 'Roraima',
+        'SC' => 'Santa Catarina',
+        'SP' => 'São Paulo',
+        'SPC'=> 'Spacecom',
+        'SE' => 'Sergipe',
+        'TO' => 'Tocantins'
+    ];
+    return $estados[strtoupper($uf)] ?? 'Estado Desconhecido';
+}
+?>
+

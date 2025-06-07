@@ -1,0 +1,10 @@
+# Ativar rewrite engine
+RewriteEngine On
+
+# Bloquear acesso a arquivos sensíveis
+<FilesMatch "\.(env|log|ini)$">
+    Deny from all
+</FilesMatch>
+
+# Diretório raiz
+DirectoryIndex config.php
