@@ -15,19 +15,41 @@ foreach ($links as $link) {
     <meta charset="UTF-8">
     <title>Monitoramento de Links Spacecom</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: #f0f2f5;
+        :root {
+            --primary-dark: #0f172a;
+            --secondary-dark: #1e293b;
+            --accent-dark: #334155;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --border-color: #475569;
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(148, 163, 184, 0.1);
+        }
+
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
             overflow-x: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            color: white;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            color: var(--text-primary);
             padding: 1rem 2rem;
             display: flex;
             align-items: center;
@@ -35,20 +57,24 @@ foreach ($links as $link) {
             width: 100%;
             top: 0;
             z-index: 1000;
-            height: 70px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            height: 80px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .header h1 {
             flex-grow: 1;
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: -0.025em;
+            background: linear-gradient(135deg, var(--text-primary), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .status-container {
             display: flex;
-            gap: 18px;
+            gap: 20px;
             margin-right: 60px;
             align-items: center;
         }
@@ -56,267 +82,598 @@ foreach ($links as $link) {
         .status-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 7px 16px;
-            border-radius: 30px;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(6px);
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .status-item:hover {
-            background: linear-gradient(
-            to bottom,
-            rgba(255,255,255,0.1),
-            transparent
-            );
-            transform: translateY(-1px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-        }
-
-        .status-item.online {
-            background: rgba(40, 167, 69, 0.9);
-	    color: #f0fff4;
-            border-color: rgba(32, 135, 56, 0.5);
-        }
-
-        .status-item.offline {
-            background: rgba(220, 53, 69, 0.9);
-    	    color: #fff5f5;
-    	    border-color: rgba(200, 35, 51, 0.5);
-        }
-
-        .status-item i {
-            font-size: 1.1rem;
-    	    opacity: 0.9;
-    	    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
-        }
-
-        .status-item span {
-            font-size: 1.1rem;
-    	    font-weight: 600;
-    	    letter-spacing: 0.5px;
-    	    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-
-        .botao-menu {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-right: 20px;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .botao-menu:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        .botao-menu__linha {
-            width: 22px;
-            height: 2px;
-            background: white;
-            transition: 0.3s;
-            position: absolute;
-        }
-
-        .botao-menu__linha:nth-child(1) { transform: translateY(-8px); }
-        .botao-menu__linha:nth-child(3) { transform: translateY(8px); }
-
-        .menu-lateral {
-            position: fixed;
-            left: -250px;
-            top: 70px;
-            height: calc(100% - 120px);
-            width: 250px;
-            background: rgba(52, 73, 94, 0.95);
-            backdrop-filter: blur(15px);
-            transition: 0.3s;
-            z-index: 999;
-            padding-top: 25px;
-            overflow-y: auto;
-            border-right: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .menu-lateral.aberto {
-            left: 0;
-        }
-
-        .menu-lateral nav {
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-        }
-
-        .menu-lateral a {
-            color: white;
-            text-decoration: none;
-            padding: 1rem 1.5rem;
-            margin: 0.5rem 0;
-            border-radius: 8px;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-size: 1rem;
-            background: rgba(255,255,255,0.05);
-        }
-
-        .menu-lateral a:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateX(10px);
-        }
-
-        .conteudo {
-            margin: 130px 30px 80px;
-            transition: 0.3s;
-        }
-
-        .menu-aberto .conteudo {
-            margin-left: 280px;
-        }
-
-        .cards-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 20px;
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-            animation: cardEntrance 0.6s ease-out;
-        }
-
-        .estado-card {
-            width: 120px;
-            height: 120px;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(145deg, #ffffff, #e6e6e6);
-            cursor: pointer;
+            gap: 12px;
+            padding: 10px 18px;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            border: 2px solid white;
             position: relative;
             overflow: hidden;
         }
 
-        .estado-card::before {
+        .status-item::before {
             content: '';
             position: absolute;
-            background: radial-gradient(400px circle at var(--x) var(--y), 
-                rgba(255,255,255,0.15), transparent);
+            top: 0;
+            left: -100%;
             width: 100%;
             height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .status-item:hover::before {
+            left: 100%;
+        }
+
+        .status-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-item.online {
+            border-color: var(--success);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+
+        .status-item.offline {
+            border-color: var(--error);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+        }
+
+        .status-item i {
+            font-size: 1.2rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .status-item.online i {
+            color: var(--success);
+        }
+
+        .status-item.offline i {
+            color: var(--error);
+        }
+
+        .status-item span {
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+
+        .menu-toggle {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-toggle::before {
+            content: '';
+            position: absolute;
             top: 0;
-            left: 0;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
         }
 
-        .estado-card:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+        .menu-toggle:hover::before {
+            left: 100%;
         }
 
-        .estado-card:hover::before {
+        .menu-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-color: var(--success);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 18px;
+            position: relative;
+            transform: rotate(0deg);
+            transition: 0.3s ease-in-out;
+        }
+
+        .menu-icon span {
+            display: block;
+            position: absolute;
+            height: 2px;
+            width: 100%;
+            background: var(--text-primary);
+            border-radius: 2px;
             opacity: 1;
+            left: 0;
+            transform: rotate(0deg);
+            transition: 0.3s ease-in-out;
         }
 
-        .uf {
-            font-size: 28px;
-            font-weight: 700;
-            color: #2c3e50;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            z-index: 1;
+        .menu-icon span:nth-child(1) { top: 0px; }
+        .menu-icon span:nth-child(2) { top: 8px; }
+        .menu-icon span:nth-child(3) { top: 16px; }
+
+        .menu-toggle.active .menu-icon span:nth-child(1) {
+            top: 8px;
+            transform: rotate(135deg);
         }
 
-        .count {
-            color: #666;
-            font-size: 13px;
-            margin-top: 8px;
+        .menu-toggle.active .menu-icon span:nth-child(2) {
+            opacity: 0;
+            left: -60px;
+        }
+
+        .menu-toggle.active .menu-icon span:nth-child(3) {
+            top: 8px;
+            transform: rotate(-135deg);
+        }
+
+        .sidebar {
+            position: fixed;
+            left: -320px;
+            top: 80px;
+            height: calc(100vh - 80px);
+            width: 320px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 999;
+            overflow-y: auto;
+            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 30px 25px 20px;
+            border-bottom: 1px solid var(--glass-border);
+            background: linear-gradient(135deg, var(--secondary-dark), var(--accent-dark));
+        }
+
+        .sidebar-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            padding: 25px 0;
+        }
+
+        .nav-item {
+            margin: 0 15px 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
             font-weight: 500;
-            z-index: 1;
         }
 
-        .online {
-            background: linear-gradient(145deg, #28a745, #218838) !important;
-            border-color: #28a745;
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
+            transition: left 0.5s;
         }
 
-        .online .uf,
-        .online .count {
-            color: white;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        .nav-link:hover::before {
+            left: 100%;
         }
 
-        .offline {
-            background: linear-gradient(145deg, #dc3545, #c82333);
-            border-color: #dc3545;
-            animation: blink 1.2s infinite;
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            transform: translateX(8px);
+        }
+
+        .nav-link.active {
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .nav-icon {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-text {
+            font-size: 1rem;
+            letter-spacing: 0.025em;
+        }
+
+        .content {
+            margin: 120px 30px 100px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .sidebar.open ~ .content {
+            margin-left: 350px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .state-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .state-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: left 0.6s;
+        }
+
+        .state-card:hover::before {
+            left: 100%;
+        }
+
+        .state-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .state-card.online {
+            border-color: var(--success);
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
+        }
+
+        .state-card.offline {
+            border-color: var(--error);
+            box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
+            animation: pulse-error 2s infinite;
+        }
+
+        @keyframes pulse-error {
+            0% {
+                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
+                border-color: var(--error);
+            }
+            50% {
+                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.4);
+                border-color: #ff6b6b;
+            }
+            100% {
+                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
+                border-color: var(--error);
+            }
+        }
+
+        .state-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .state-name {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .state-card.online .state-name {
+            color: var(--success);
+        }
+
+        .state-card.offline .state-name {
+            color: var(--error);
+        }
+
+        .state-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .state-card.online .state-status {
+            background: var(--success);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+        }
+
+        .state-card.offline .state-status {
+            background: var(--error);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+            animation: blink 1s infinite;
         }
 
         @keyframes blink {
-            0% { opacity: 0.1; }
-	    25% { opacity: 0.3;}
-            50% { opacity: 0.5; }
-	    75% { opacity: 0.7; }
-            100% { opacity: 1; }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
 
-        @keyframes cardEntrance {
-            from { opacity: 0; transform: translateY(20px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+        .state-info {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 500;
         }
 
-	/* Adicionar efeito para card que está sendo atualizado */
-        .updating {
-            filter: brightness(0.9);
-            transform: scale(0.98);
+        .state-details {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            margin-top: 8px;
         }
 
-        .rodape {
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .modal-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 20px;
+            background: var(--secondary-dark);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .modal-btn:hover::before {
+            left: 100%;
+        }
+
+        .modal-btn:hover {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-btn i {
+            font-size: 1.2rem;
+            color: var(--success);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .footer {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(44, 62, 80, 0.95);
-            color: #ecf0f1;
-            padding: 18px 25px;
-            font-size: 0.95rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 20px 30px;
+            font-size: 0.9rem;
             text-align: center;
-            backdrop-filter: blur(8px);
-            border-top: 1px solid rgba(255,255,255,0.1);
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px;
-	    z-index: 1000;
+            gap: 20px;
+            z-index: 1000;
         }
 
-        .atualizacao-contador {
-            font-family: 'Roboto Mono', monospace;
-            background: rgba(255,255,255,0.1);
-            padding: 6px 12px;
+        .update-counter {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        .updating {
+            opacity: 0.7;
+            transform: scale(0.98);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.4rem;
+            }
+
+            .status-container {
+                margin-right: 0;
+                gap: 15px;
+            }
+
+            .status-item {
+                padding: 8px 12px;
+            }
+
+            .content {
+                margin: 100px 15px 80px;
+            }
+
+            .sidebar.open ~ .content {
+                margin-left: 15px;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 10px;
+            }
+
+            .modal {
+                margin: 20px;
+                padding: 25px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <button class="botao-menu" id="botao-menu">
-            <span class="botao-menu__linha"></span>
-            <span class="botao-menu__linha"></span>
-            <span class="botao-menu__linha"></span>
+        <button class="menu-toggle" id="menuToggle">
+            <div class="menu-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </button>
         <h1>Monitoramento de Links Spacecom</h1>
         <div class="status-container">
@@ -331,174 +688,258 @@ foreach ($links as $link) {
         </div>
     </div>
 
-    <div class="menu-lateral" id="menu">
-        <nav>
-            <a href="index.php"><i class="fas fa-home"></i> Home</a>
-            <a href="cadastrar.php"><i class="fas fa-plus-circle"></i> Cadastrar Link</a>
-            <a href="list_links.php"><i class="fas fa-chart-line"></i> Lista de Links</a>
-            <a href="teste_ping.php"><i class="fas fa-network-wired"></i> Teste de Ping</a>
-            <a href="mapa.php"><i class="fas fa-map-marked-alt"></i> Mapa de Rede</a>
-	    <a href="historico.php"><i class="fas fa-history"></i> Histórico </a>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Menu Principal</div>
+            <div class="sidebar-subtitle">Sistema de Monitoramento</div>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-item">
+                <a href="index.php" class="nav-link active">
+                    <div class="nav-icon"><i class="fas fa-home"></i></div>
+                    <div class="nav-text">Dashboard</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="cadastrar.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
+                    <div class="nav-text">Cadastrar Link</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="list_links.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-list"></i></div>
+                    <div class="nav-text">Lista de Links</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="teste_ping.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-network-wired"></i></div>
+                    <div class="nav-text">Teste de Ping</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="mapa.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <div class="nav-text">Mapa da Rede</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="historico.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-history"></i></div>
+                    <div class="nav-text">Histórico</div>
+                </a>
+            </div>
         </nav>
     </div>
 
-    <div class="conteudo">
-        <div class="cards-container">
+    <div class="content">
+        <div class="cards-grid">
             <?php foreach ($estados as $uf => $linksEstado): ?>
-                <!-- Adicionado link para a página de detalhes -->
-                <a href="detalhes_estado.php?uf=<?= urlencode($uf) ?>" style="text-decoration: none; color: inherit;">
-                    <div class="estado-card" 
-                         data-ips="<?= htmlspecialchars(json_encode(array_column($linksEstado, 'ip'))) ?>">
-                        <div class="uf"><?= htmlspecialchars($uf) ?></div>
-                        <div class="count"><?= count($linksEstado) ?> link(s)</div>
+                <div class="state-card" 
+                     data-uf="<?= htmlspecialchars($uf) ?>"
+                     data-ips="<?= htmlspecialchars(json_encode(array_column($linksEstado, 'ip'))) ?>">
+                    <div class="state-header">
+                        <div class="state-name"><?= htmlspecialchars($uf) ?></div>
+                        <div class="state-status"></div>
                     </div>
-                </a>
+                    <div class="state-info"><?= count($linksEstado) ?> link(s)</div>
+                    <div class="state-details">Clique para mais opções</div>
+                </div>
             <?php endforeach; ?>
         </div>
     </div>
 
-    <div class="rodape">
-        Spacecom Monitoramento S/A © 2025 
-        <span class="atualizacao-contador" id="contador">Atualizando em: 5s</span>
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Estado: SP</div>
+                <div class="modal-subtitle">Escolha uma opção</div>
+            </div>
+            <div class="modal-actions">
+                <a href="#" class="modal-btn" id="detailsBtn">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <div>Detalhes</div>
+                        <small style="opacity: 0.7;">Ver status dos links</small>
+                    </div>
+                </a>
+                <a href="#" class="modal-btn" id="historyBtn">
+                    <i class="fas fa-history"></i>
+                    <div>
+                        <div>Histórico</div>
+                        <small style="opacity: 0.7;">Consultar histórico</small>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <span>Spacecom Monitoramento S/A © 2025</span>
+        <span class="update-counter" id="updateCounter">Atualizando em: 5s</span>
     </div>
 
     <script>
-        // Controle do Menu
-        const menuBtn = document.getElementById('botao-menu');
-        const menu = document.getElementById('menu');
-        const body = document.body;
+        // Menu Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const content = document.querySelector('.content');
 
-        menuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menu.classList.toggle('aberto');
-            body.classList.toggle('menu-aberto');
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            sidebar.classList.toggle('open');
         });
 
+        // Close sidebar when clicking outside
         document.addEventListener('click', (e) => {
-            if (!menu.contains(e.target) && !menuBtn.contains(e.target)) {
-                menu.classList.remove('aberto');
-                body.classList.remove('menu-aberto');
+            if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                menuToggle.classList.remove('active');
+                sidebar.classList.remove('open');
             }
         });
 
-        // Sistema de Verificação de Status usando API centralizada
-        let tempoRestante = 5;
-        let intervaloAtualizacao;
-        let verificacaoEmAndamento = false;
-        
-        // Mapeamento de estado para cards
-        const estadoCards = {};
-        document.querySelectorAll('.estado-card').forEach(card => {
-            const uf = card.querySelector('.uf').textContent;
-            estadoCards[uf] = card;
+        // Modal functionality
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const detailsBtn = document.getElementById('detailsBtn');
+        const historyBtn = document.getElementById('historyBtn');
+
+        function openModal(uf) {
+            modalTitle.textContent = `Estado: ${uf}`;
+            detailsBtn.href = `detalhes_estado.php?uf=${encodeURIComponent(uf)}`;
+            historyBtn.href = `historico.php?uf=${encodeURIComponent(uf)}`;
+            modalOverlay.classList.add('show');
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('show');
+        }
+
+        // Close modal when clicking overlay
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
         });
 
-        async function verificarStatus() {
-            if(verificacaoEmAndamento) return;
-            verificacaoEmAndamento = true;
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Card click handlers
+        document.querySelectorAll('.state-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const uf = card.dataset.uf;
+                openModal(uf);
+            });
+        });
+
+        // Status monitoring system
+        let updateTime = 5;
+        let updateInterval;
+        let isUpdating = false;
+        
+        const stateCards = {};
+        document.querySelectorAll('.state-card').forEach(card => {
+            const uf = card.dataset.uf;
+            stateCards[uf] = card;
+        });
+
+        async function checkStatus() {
+            if (isUpdating) return;
+            isUpdating = true;
             
             try {
-                // Adicionar classe de atualização aos cards
-                Object.values(estadoCards).forEach(card => {
+                Object.values(stateCards).forEach(card => {
                     card.classList.add('updating');
                 });
                 
                 const response = await fetch('api/status.php');
                 const links = await response.json();
                 
-                // Agrupar por estado e calcular status
-                const statusPorEstado = {};
+                const statusByState = {};
                 let totalOnline = 0;
                 let totalOffline = 0;
                 
                 links.forEach(link => {
                     const uf = link.uf;
-                    if(!statusPorEstado[uf]) {
-                        statusPorEstado[uf] = {
+                    if (!statusByState[uf]) {
+                        statusByState[uf] = {
                             online: 0,
                             offline: 0,
                             links: []
                         };
                     }
                     
-                    if(link.status === 'online') {
-                        statusPorEstado[uf].online++;
+                    if (link.status === 'online') {
+                        statusByState[uf].online++;
                         totalOnline++;
                     } else {
-                        statusPorEstado[uf].offline++;
+                        statusByState[uf].offline++;
                         totalOffline++;
                     }
                     
-                    statusPorEstado[uf].links.push(link);
+                    statusByState[uf].links.push(link);
                 });
                 
-                // Atualizar UI
-                for(const uf in statusPorEstado) {
-                    const card = estadoCards[uf];
-                    if(card) {
-                        const status = statusPorEstado[uf].offline > 0 ? 'offline' : 'online';
+                // Update UI
+                for (const uf in statusByState) {
+                    const card = stateCards[uf];
+                    if (card) {
+                        const status = statusByState[uf].offline > 0 ? 'offline' : 'online';
                         
-                        // Atualizar classes
                         card.classList.remove('online', 'offline', 'updating');
                         card.classList.add(status);
                         
-                        // Atualizar contador
-                        const countElement = card.querySelector('.count');
-                        if(countElement) {
-                            const total = statusPorEstado[uf].online + statusPorEstado[uf].offline;
-                            const offlineText = statusPorEstado[uf].offline > 0 ? 
-                                ` (<span style="color:#ff6b6b">${statusPorEstado[uf].offline} off</span>)` : '';
-                            countElement.innerHTML = `${total} link(s)${offlineText}`;
+                        const infoElement = card.querySelector('.state-info');
+                        if (infoElement) {
+                            const total = statusByState[uf].online + statusByState[uf].offline;
+                            const offlineText = statusByState[uf].offline > 0 ? 
+                                ` (${statusByState[uf].offline} offline)` : '';
+                            infoElement.textContent = `${total} link(s)${offlineText}`;
                         }
                     }
                 }
                 
-                // Atualizar contadores globais
+                // Update global counters
                 document.getElementById('total-online').textContent = totalOnline;
                 document.getElementById('total-offline').textContent = totalOffline;
                 
-            } catch(error) {
-                console.error('Erro na verificação de status:', error);
+            } catch (error) {
+                console.error('Error checking status:', error);
             } finally {
-                verificacaoEmAndamento = false;
-                
-                // Remover classe de atualização
-                Object.values(estadoCards).forEach(card => {
+                isUpdating = false;
+                Object.values(stateCards).forEach(card => {
                     card.classList.remove('updating');
                 });
             }
         }
 
-        function iniciarCicloAtualizacao() {
-            intervaloAtualizacao = setInterval(() => {
-                tempoRestante--;
-                document.getElementById('contador').textContent = `Atualizando em: ${tempoRestante}s`;
+        function startUpdateCycle() {
+            updateInterval = setInterval(() => {
+                updateTime--;
+                document.getElementById('updateCounter').textContent = `Atualizando em: ${updateTime}s`;
                 
-                if(tempoRestante <= 0) {
-                    tempoRestante = 5;
-                    verificarStatus();
+                if (updateTime <= 0) {
+                    updateTime = 5;
+                    checkStatus();
                 }
             }, 1000);
         }
 
-        // Efeito de Hover Dinâmico
-        document.querySelectorAll('.estado-card').forEach(card => {
-            card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                card.style.setProperty('--x', `${x}px`);
-                card.style.setProperty('--y', `${y}px`);
-            });
-        });
-
-        // Inicialização
+        // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
-            await verificarStatus();
-            iniciarCicloAtualizacao();
-            setInterval(verificarStatus, 5000); // Atualizar a cada 5 segundos
+            await checkStatus();
+            startUpdateCycle();
+            setInterval(checkStatus, 5000);
         });
-
     </script>
 </body>
 </html>

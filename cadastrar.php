@@ -32,17 +32,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastrar Novo Link - Spacecom</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: #f8f9fa;
+        :root {
+            --primary-dark: #0f172a;
+            --secondary-dark: #1e293b;
+            --accent-dark: #334155;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --border-color: #475569;
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(148, 163, 184, 0.1);
+        }
+
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
         }
 
         .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            color: white;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            color: var(--text-primary);
             padding: 1rem 2rem;
             display: flex;
             align-items: center;
@@ -50,129 +73,253 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             width: 100%;
             top: 0;
             z-index: 1000;
-            height: 70px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            height: 80px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .header h1 {
             flex-grow: 1;
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: -0.025em;
+            background: linear-gradient(135deg, var(--text-primary), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .botao-menu {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
+        .menu-toggle {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             margin-right: 20px;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        .botao-menu:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-	.botao-menu__linha {
-            width: 22px;
-            height: 2px;
-            background: white;
-            transition: 0.3s;
+        .menu-toggle::before {
+            content: '';
             position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
         }
 
-        .botao-menu__linha:nth-child(1) { transform: translateY(-8px); }
-        .botao-menu__linha:nth-child(3) { transform: translateY(8px); }
+        .menu-toggle:hover::before {
+            left: 100%;
+        }
 
-        .menu-lateral {
+        .menu-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border-color: var(--success);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 18px;
+            position: relative;
+            transform: rotate(0deg);
+            transition: 0.3s ease-in-out;
+        }
+
+        .menu-icon span {
+            display: block;
+            position: absolute;
+            height: 2px;
+            width: 100%;
+            background: var(--text-primary);
+            border-radius: 2px;
+            opacity: 1;
+            left: 0;
+            transform: rotate(0deg);
+            transition: 0.3s ease-in-out;
+        }
+
+        .menu-icon span:nth-child(1) { top: 0px; }
+        .menu-icon span:nth-child(2) { top: 8px; }
+        .menu-icon span:nth-child(3) { top: 16px; }
+
+        .menu-toggle.active .menu-icon span:nth-child(1) {
+            top: 8px;
+            transform: rotate(135deg);
+        }
+
+        .menu-toggle.active .menu-icon span:nth-child(2) {
+            opacity: 0;
+            left: -60px;
+        }
+
+        .menu-toggle.active .menu-icon span:nth-child(3) {
+            top: 8px;
+            transform: rotate(-135deg);
+        }
+
+        .sidebar {
             position: fixed;
-            left: -250px;
-            top: 70px;
-            height: calc(100% - 120px);
-            width: 250px;
-            background: rgba(52, 73, 94, 0.95);
-            backdrop-filter: blur(15px);
-            transition: 0.3s;
+            left: -320px;
+            top: 80px;
+            height: calc(100vh - 80px);
+            width: 320px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 999;
-            padding-top: 25px;
             overflow-y: auto;
-            border-right: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.3);
         }
 
-        .menu-lateral.aberto {
+        .sidebar.open {
             left: 0;
         }
 
-        .menu-lateral nav {
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
+        .sidebar-header {
+            padding: 30px 25px 20px;
+            border-bottom: 1px solid var(--glass-border);
+            background: linear-gradient(135deg, var(--secondary-dark), var(--accent-dark));
         }
 
-        .menu-lateral a {
-            color: white;
-            text-decoration: none;
-            padding: 1rem 1.5rem;
-            margin: 0.5rem 0;
-            border-radius: 8px;
-            transition: 0.3s;
+        .sidebar-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            padding: 25px 0;
+        }
+
+        .nav-item {
+            margin: 0 15px 8px;
+        }
+
+        .nav-link {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
+            padding: 16px 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            font-weight: 500;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-link:hover::before {
+            left: 100%;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            transform: translateX(8px);
+        }
+
+        .nav-link.active {
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .nav-icon {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-text {
             font-size: 1rem;
-            background: rgba(255,255,255,0.05);
+            letter-spacing: 0.025em;
         }
 
-        .menu-lateral a:hover {
-            background: rgba(255,255,255,0.1);
-            transform: translateX(10px);
-        }
-
-        .conteudo {
-            margin: 130px 30px 120px;
-            transition: 0.3s;
-            z-index: 1;
-            min-height: calc(100vh - 250px);
-            overflow-y: auto;
+        .content {
+            margin: 120px 30px 100px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
 
-        .menu-aberto .conteudo {
-            margin-left: 280px;
+        .sidebar.open ~ .content {
+            margin-left: 350px;
         }
 
         .card {
-            max-width: 700px;
+            max-width: 800px;
             margin: 20px auto;
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            box-sizing: border-box;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             position: relative;
-            z-index: 1;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.02), transparent);
+            transition: left 0.8s;
+        }
+
+        .card:hover::before {
+            left: 100%;
         }
 
         .form-container {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 25px;
         }
 
         .form-group {
-            margin-bottom: 1.2rem;
+            margin-bottom: 20px;
             position: relative;
-            width: 100%;
         }
 
         .form-row {
             display: flex;
-            gap: 1.2rem;
+            gap: 20px;
             width: 100%;
         }
 
@@ -183,147 +330,233 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         label {
             display: block;
-            font-size: 0.9rem;
-            color: #495057;
-            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
             font-weight: 500;
+            letter-spacing: 0.025em;
         }
 
         .input-field {
             width: 100%;
-            padding: 0.8rem 1rem 0.8rem 2.5rem;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            background: #f8f9fa;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            padding: 16px 20px 16px 50px;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: rgba(15, 23, 42, 0.5);
+            color: var(--text-primary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-sizing: border-box;
+            backdrop-filter: blur(10px);
         }
 
         .input-field:focus {
-            border-color: #4d90fe;
-            background: #fff;
-            box-shadow: 0 0 0 3px rgba(77,144,254,0.1);
+            border-color: var(--success);
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
             outline: none;
+            transform: translateY(-2px);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
         }
 
         .input-icon {
             position: absolute;
-            left: 12px;
-            top: 34px;
-            color: #6c757d;
-            font-size: 1rem;
+            left: 18px;
+            top: 50px;
+            color: var(--success);
+            font-size: 1.1rem;
+            z-index: 1;
         }
 
         .form-actions {
             display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
         }
 
         .button {
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.2s ease;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: none;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 10px;
+            font-size: 1rem;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .button:hover::before {
+            left: 100%;
         }
 
         .button.primary {
-            background: #4d90fe;
+            background: linear-gradient(135deg, var(--success), #059669);
             color: white;
+            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
         }
 
         .button.secondary {
-            background: none;
-            color: #6c757d;
-            border: 1px solid #e0e0e0;
+            background: var(--secondary-dark);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
         }
 
         .button:hover {
-            transform: translateY(-1px);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .button.primary:hover {
+            box-shadow: 0 12px 24px rgba(16, 185, 129, 0.4);
         }
 
         .alert {
             border-left: 4px solid transparent;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 500;
         }
 
         .alert.success {
-            border-color: #28a745;
-            background: rgba(212, 237, 218, 0.95);
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
         }
 
         .alert.error {
-            border-color: #dc3545;
-            background: rgba(248, 215, 218, 0.95);
+            border-color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 20px 30px;
+            font-size: 0.9rem;
+            text-align: center;
+            z-index: 1000;
         }
 
         @media (max-width: 768px) {
             .card {
                 margin: 20px;
-                padding: 1.5rem;
+                padding: 30px 25px;
             }
             
             .form-row {
                 flex-direction: column;
-                gap: 0.8rem;
+                gap: 15px;
             }
             
             .input-field {
-                padding-left: 2.3rem;
+                padding-left: 50px;
+            }
+
+            .content {
+                margin: 100px 15px 80px;
+            }
+
+            .sidebar.open ~ .content {
+                margin-left: 15px;
+            }
+
+            .form-actions {
+                flex-direction: column;
             }
         }
-
-        .rodape {
-            position: fixed;
-            bottom: 0;
-            z-index: 1000;
-            left: 0;
-            right: 0;
-            background: rgba(44, 62, 80, 0.95);
-            color: #ecf0f1;
-            padding: 18px 25px;
-            font-size: 0.95rem;
-            text-align: center;
-            backdrop-filter: blur(8px);
-            border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-        }
-
     </style>
-
 </head>
 <body>
     <div class="header">
-    <button class="botao-menu" id="botao-menu">
-        <span class="botao-menu__linha"></span>
-        <span class="botao-menu__linha"></span>
-        <span class="botao-menu__linha"></span>
-    </button>
-    <h1>Cadastrar Novo Link</h1>
-   </div>
+        <button class="menu-toggle" id="menuToggle">
+            <div class="menu-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </button>
+        <h1>Cadastrar Novo Link</h1>
+    </div>
 
-    <div class="menu-lateral" id="menu">
-        <nav>
-            <a href="index.php"><i class="fas fa-home"></i>  Home</a>
-            <a href="list_links.php"><i class="fas fa-plus-circle"></i>  Cadastrar Link</a>
-            <a href="dashboard.php"><i class="fas fa-chart-line"></i>  Lista de Links</a>
-            <a href="teste_ping.php"><i class="fas fa-network-wired"></i>  Teste de Ping</a>
-            <a href="mapa.php"><i class="fas fa-map-marked-alt"></i>  Mapa da Rede</a>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Menu Principal</div>
+            <div class="sidebar-subtitle">Sistema de Monitoramento</div>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-item">
+                <a href="index.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-home"></i></div>
+                    <div class="nav-text">Dashboard</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="cadastrar.php" class="nav-link active">
+                    <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
+                    <div class="nav-text">Cadastrar Link</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="list_links.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-list"></i></div>
+                    <div class="nav-text">Lista de Links</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="teste_ping.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-network-wired"></i></div>
+                    <div class="nav-text">Teste de Ping</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="mapa.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <div class="nav-text">Mapa da Rede</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="historico.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-history"></i></div>
+                    <div class="nav-text">Histórico</div>
+                </a>
+            </div>
         </nav>
     </div>
 
-     <div class="conteudo">
+    <div class="content">
         <div class="card">
             <?php if(isset($success)): ?>
                 <div class="alert success">
@@ -338,14 +571,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php endif; ?>
 
             <form method="POST" class="form-container">
-               <div class="form-group">
+                <div class="form-group">
                     <label>Nome do Link</label>
                     <i class="fas fa-link input-icon"></i>
                     <input class="input-field" type="text" name="nome" required 
                         placeholder="Ex: Link Matriz-SP">
                 </div>
 
-                <!-- Linha: IP e Contato -->
                 <div class="form-row">
                     <div class="form-group">
                         <label>Endereço IP</label>
@@ -362,7 +594,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 </div>
 
-                <!-- Endereço Físico -->
                 <div class="form-group">
                     <label>Endereço Físico</label>
                     <i class="fas fa-map-marker-alt input-icon"></i>
@@ -370,7 +601,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         placeholder="Rua Principal, 123">
                 </div>
 
-                <!-- Linha: Cidade e UF -->
                 <div class="form-row">
                     <div class="form-group">
                         <label>Cidade</label>
@@ -379,14 +609,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             placeholder="São Paulo">
                     </div>
 
-                    <div class="form-group" style="max-width: 120px">
+                    <div class="form-group" style="max-width: 150px">
                         <label>UF</label>
-                        <input class="input-field" type="text" name="uf" maxlength="2" required 
-                            placeholder="SP">
+                        <i class="fas fa-flag input-icon"></i>
+                        <input class="input-field" type="text" name="uf" maxlength="3" required 
+                            placeholder="SP" style="text-transform: uppercase;">
                     </div>
                 </div>
 
-                <!-- Linha: Coordenadas -->
                 <div class="form-row">
                     <div class="form-group">
                         <label>Latitude</label>
@@ -403,10 +633,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 </div>
 
-                <!-- Ações -->
-                <div class="form-actions" style="margin-top: 1.5rem">
+                <div class="form-actions">
                     <button type="submit" class="button primary">
-                        <i class="fas fa-save"></i> Cadastrar
+                        <i class="fas fa-save"></i> Cadastrar Link
                     </button>
                     <a href="index.php" class="button secondary">
                         <i class="fas fa-arrow-left"></i> Voltar
@@ -416,35 +645,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 
-
-    <div class="rodape">
+    <div class="footer">
         Spacecom Monitoramento S/A © 2025
     </div>
 
     <script>
-        const menuBtn = document.getElementById('botao-menu');
-        const menu = document.getElementById('menu');
-        const body = document.body;
+        // Menu Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
 
-        menuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            menu.classList.toggle('aberto');
-            body.classList.toggle('menu-aberto');
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            sidebar.classList.toggle('open');
         });
 
+        // Close sidebar when clicking outside
         document.addEventListener('click', (e) => {
-            if (!menu.contains(e.target) && !menuBtn.contains(e.target)) {
-                menu.classList.remove('aberto');
-                body.classList.remove('menu-aberto');
+            if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                menuToggle.classList.remove('active');
+                sidebar.classList.remove('open');
             }
         });
 
+        // Auto-uppercase UF field
+        document.querySelector('input[name="uf"]').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+
+        // Form validation and enhancement
         document.querySelectorAll('.input-field').forEach(input => {
-            input.addEventListener('click', (e) => {
-                e.stopPropagation();
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
             });
         });
-        
     </script>
 </body>
 </html>
