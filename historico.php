@@ -799,9 +799,15 @@ try {
             <?php if ($mostrarResultados): ?>
                 <div class="date-range">
                     <i class="fas fa-calendar-alt"></i> Exibindo resultados de 
+<<<<<<< HEAD
                     <?= date('d/m/Y H:i', strtotime($filtros['data_inicio'] . ' ' . $filtros['hora_inicio'])) ?> 
                     até 
                     <?= date('d/m/Y H:i', strtotime($filtros['data_fim'] . ' ' . $filtros['hora_fim'])) ?>
+=======
+                    <?= date('d/m/Y H:i', strtotime($dataInicio)) ?> 
+                    até 
+                    <?= date('d/m/Y H:i', strtotime($dataFim)) ?>
+>>>>>>> 897b47d77a858771fe0c1036984d5972a5af88fe
                 </div>
                 
                 <div class="results-container">
