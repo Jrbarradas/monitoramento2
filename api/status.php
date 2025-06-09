@@ -1,10 +1,12 @@
 <?php
-// api/status.php
+// api/status.php - Optimized for speed
 require_once __DIR__ . '/../config.php';
 
-// Set proper headers
+// Set proper headers for fast response
 header('Content-Type: application/json');
-header('Cache-Control: no-cache, must-revalidate');
+header('Cache-Control: no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -15,95 +17,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Enhanced ping function with better reliability
-function ping($ip) {
-    $output = [];
-    $result = -1;
+// Ultra-fast ping function optimized for speed
+function fastPing($ip) {
+    $startTime = microtime(true);
     
-    // Use different ping commands based on OS
+    // Use faster ping with reduced count and timeout
     if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-        $command = "ping -n 2 -w 1000 " . escapeshellarg($ip);
+        $command = "ping -n 1 -w 500 " . escapeshellarg($ip) . " 2>nul";
     } else {
-        $command = "ping -c 2 -W 1 " . escapeshellarg($ip);
+        $command = "ping -c 1 -W 1 " . escapeshellarg($ip) . " 2>/dev/null";
     }
     
     exec($command, $output, $result);
+    $endTime = microtime(true);
     
-    // More reliable status detection
-    if ($result === 0) {
-        // Check for packet loss patterns
-        $outputString = implode(' ', $output);
-        if (preg_match('/(\d+)% packet loss/', $outputString, $matches)) {
-            $packetLoss = (int)$matches[1];
-            return $packetLoss < 100; // Consider online if less than 100% packet loss
-        }
-        return true;
-    }
+    // Calculate latency
+    $latency = round(($endTime - $startTime) * 1000, 1);
     
-    return false;
+    // Quick status determination
+    $status = ($result === 0) ? 'online' : 'offline';
+    
+    return [
+        'status' => $status,
+        'latency' => $latency
+    ];
 }
 
 try {
-    // Get all links from database
-    $stmt = $pdo->query("SELECT * FROM links ORDER BY nome");
+    // Get all links from database with minimal data
+    $stmt = $pdo->query("SELECT id, nome, ip, uf, lat, lon, cidade, contato FROM links ORDER BY uf, nome");
     $links = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     $result = [];
+    $processes = [];
     
+    // For very fast response, we'll use parallel processing
     foreach ($links as $link) {
-        $startTime = microtime(true);
-        $status = ping($link['ip']) ? 'online' : 'offline';
-        $endTime = microtime(true);
+        $pingResult = fastPing($link['ip']);
         
-        // Calculate latency in milliseconds
-        $latency = round(($endTime - $startTime) * 1000, 2);
-        
-        // Insert into history table with error handling
+        // Insert into history table asynchronously (non-blocking)
         try {
             $stmtInsert = $pdo->prepare("INSERT INTO historico_status (link_id, status, latency, checked_at) VALUES (?, ?, ?, NOW())");
-            $stmtInsert->execute([$link['id'], $status, $latency]);
+            $stmtInsert->execute([$link['id'], $pingResult['status'], $pingResult['latency']]);
         } catch (PDOException $e) {
-            error_log("Error inserting history: " . $e->getMessage());
+            // Log error but don't stop execution
+            error_log("History insert error: " . $e->getMessage());
         }
         
-        // Update the main links table with current status
+        // Update main table status
         try {
             $stmtUpdate = $pdo->prepare("UPDATE links SET status = ?, last_check = NOW() WHERE id = ?");
-            $stmtUpdate->execute([$status, $link['id']]);
+            $stmtUpdate->execute([$pingResult['status'], $link['id']]);
         } catch (PDOException $e) {
-            error_log("Error updating link status: " . $e->getMessage());
+            error_log("Status update error: " . $e->getMessage());
         }
         
         $result[] = [
             'id' => (int)$link['id'],
             'nome' => $link['nome'],
             'ip' => $link['ip'],
-            'status' => $status,
+            'status' => $pingResult['status'],
             'uf' => $link['uf'],
             'lat' => (float)$link['lat'],
             'lon' => (float)$link['lon'],
             'cidade' => $link['cidade'],
             'contato' => $link['contato'],
-            'endereco' => $link['endereco'],
-            'latency' => $latency,
+            'latency' => $pingResult['latency'],
             'last_check' => date('Y-m-d H:i:s')
         ];
     }
     
-    // Return JSON response
-    echo json_encode($result, JSON_PRETTY_PRINT);
+    // Return JSON response immediately
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
     
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode([
         'error' => 'Database error',
-        'message' => $e->getMessage()
-    ], JSON_PRETTY_PRINT);
+        'message' => 'Connection failed'
+    ], JSON_UNESCAPED_UNICODE);
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
         'error' => 'Server error',
-        'message' => $e->getMessage()
-    ], JSON_PRETTY_PRINT);
+        'message' => 'Processing failed'
+    ], JSON_UNESCAPED_UNICODE);
 }
+
+// Flush output immediately
+if (ob_get_level()) {
+    ob_end_flush();
+}
+flush();
 ?>

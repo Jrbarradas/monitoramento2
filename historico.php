@@ -8,9 +8,7 @@ date_default_timezone_set('America/Sao_Paulo');
 // Buscar todos os links
 $links = $pdo->query("SELECT id, nome, ip FROM links ORDER BY nome")->fetchAll(PDO::FETCH_ASSOC);
 
-// Processar o formulário
-$dadosGrafico = [];
-$dadosTabela = [];
+// Processar filtros da URL
 $filtros = [
     'link_id' => '',
     'data_inicio' => date('Y-m-d'),
@@ -19,6 +17,25 @@ $filtros = [
     'hora_fim' => date('H:i')
 ];
 
+// Verificar se há filtros específicos na URL (vindos do modal)
+if (isset($_GET['uf']) && isset($_GET['link_ids'])) {
+    $uf = $_GET['uf'];
+    $linkIds = explode(',', $_GET['link_ids']);
+    
+    // Filtrar links apenas do estado selecionado
+    $links = array_filter($links, function($link) use ($linkIds) {
+        return in_array($link['id'], $linkIds);
+    });
+    
+    // Se há apenas um link, pré-selecionar
+    if (count($links) == 1) {
+        $filtros['link_id'] = $links[0]['id'];
+    }
+}
+
+// Processar o formulário
+$dadosGrafico = [];
+$dadosTabela = [];
 $mensagem = '';
 $mostrarResultados = false;
 
@@ -84,8 +101,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             $mensagem = '<div class="alert alert-danger">
                 <i class="fas fa-bug"></i> Erro na consulta: ' . htmlspecialchars($e->getMessage()) . '
-                <div class="debug-sql">Consulta SQL: ' . htmlspecialchars($sql) . '</div>
-                <div class="debug-params">Parâmetros: ' . htmlspecialchars(print_r($params, true)) . '</div>
             </div>';
         }
     }
@@ -709,7 +724,11 @@ try {
         <div class="container">
             <div class="page-header">
                 <h1 class="page-title"><i class="fas fa-history"></i> Histórico de Monitoramento</h1>
-                <p class="page-subtitle">Consulte o histórico de disponibilidade dos links</p>
+                <p class="page-subtitle">Consulte o histórico de disponibilidade dos links
+                    <?php if (isset($_GET['uf'])): ?>
+                        - Estado: <?= htmlspecialchars($_GET['uf']) ?>
+                    <?php endif; ?>
+                </p>
             </div>
             
             <form method="POST" class="filters-container">

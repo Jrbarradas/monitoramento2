@@ -187,7 +187,7 @@ $linkIds = array_column($links, 'id');
             border: 1px solid var(--glass-border);
             border-radius: 16px;
             padding: 25px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -460,16 +460,16 @@ $linkIds = array_column($links, 'id');
 
     <div class="footer">
         <span>Spacecom Monitoramento S/A © 2025</span>
-        <span class="update-counter" id="updateCounter">Atualizando em: 5s</span>
+        <span class="update-counter" id="updateCounter">Atualizando em: 2s</span>
     </div>
 
     <script>
-        let updateTime = 5;
+        let updateTime = 2;
         let updateInterval;
         let isUpdating = false;
         const linkIds = <?= json_encode($linkIds) ?>;
 
-        async function checkStatus() {
+        async function checkStatusFast() {
             if (isUpdating) return;
             isUpdating = true;
             
@@ -479,7 +479,16 @@ $linkIds = array_column($links, 'id');
                     card.classList.add('updating');
                 });
                 
-                const response = await fetch('api/status.php');
+                const response = await fetch('api/status.php', {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
                 const links = await response.json();
                 
                 let onlineCount = 0;
@@ -534,17 +543,16 @@ $linkIds = array_column($links, 'id');
                 document.getElementById('updateCounter').textContent = `Atualizando em: ${updateTime}s`;
                 
                 if (updateTime <= 0) {
-                    updateTime = 5;
-                    checkStatus();
+                    updateTime = 2;
+                    checkStatusFast();
                 }
             }, 1000);
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
-            await checkStatus();
+            await checkStatusFast();
             startUpdateCycle();
-            setInterval(checkStatus, 5000);
         });
     </script>
 </body>

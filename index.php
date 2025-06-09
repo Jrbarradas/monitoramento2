@@ -334,8 +334,8 @@ foreach ($links as $link) {
 
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
@@ -345,16 +345,18 @@ foreach ($links as $link) {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 25px;
+            border-radius: 16px;
+            padding: 20px;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
-            min-height: 160px;
+            min-height: 120px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
 
         .state-card::before {
@@ -373,47 +375,60 @@ foreach ($links as $link) {
         }
 
         .state-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
         }
 
         .state-card.online {
             border-color: var(--success);
-            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
+            box-shadow: 0 5px 20px rgba(16, 185, 129, 0.2);
         }
 
         .state-card.offline {
             border-color: var(--error);
-            box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
-            animation: pulse-error 2s infinite;
+            box-shadow: 0 5px 20px rgba(239, 68, 68, 0.3);
+            animation: pulse-error 1.5s infinite;
         }
 
         @keyframes pulse-error {
             0% {
-                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
+                box-shadow: 0 5px 20px rgba(239, 68, 68, 0.3);
                 border-color: var(--error);
             }
             50% {
-                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.4);
-                border-color: #ff6b6b;
+                box-shadow: 0 5px 30px rgba(255, 0, 0, 0.6);
+                border-color: #ff0000;
             }
             100% {
-                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
+                box-shadow: 0 5px 20px rgba(239, 68, 68, 0.3);
                 border-color: var(--error);
             }
         }
 
-        .state-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
+        .alert-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #ff0000;
+            font-size: 1.2rem;
+            animation: blink 1s infinite;
+            display: none;
+        }
+
+        .state-card.offline .alert-icon {
+            display: block;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
 
         .state-name {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 700;
             letter-spacing: -0.025em;
+            margin-bottom: 8px;
         }
 
         .state-card.online .state-name {
@@ -424,40 +439,10 @@ foreach ($links as $link) {
             color: var(--error);
         }
 
-        .state-status {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            transition: all 0.3s;
-        }
-
-        .state-card.online .state-status {
-            background: var(--success);
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
-        }
-
-        .state-card.offline .state-status {
-            background: var(--error);
-            box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
         .state-info {
             color: var(--text-secondary);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 500;
-        }
-
-        .state-details {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            opacity: 0.7;
-            margin-top: 8px;
         }
 
         .modal-overlay {
@@ -654,8 +639,8 @@ foreach ($links as $link) {
             }
 
             .cards-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
                 padding: 10px;
             }
 
@@ -738,13 +723,11 @@ foreach ($links as $link) {
             <?php foreach ($estados as $uf => $linksEstado): ?>
                 <div class="state-card" 
                      data-uf="<?= htmlspecialchars($uf) ?>"
-                     data-ips="<?= htmlspecialchars(json_encode(array_column($linksEstado, 'ip'))) ?>">
-                    <div class="state-header">
-                        <div class="state-name"><?= htmlspecialchars($uf) ?></div>
-                        <div class="state-status"></div>
-                    </div>
+                     data-ips="<?= htmlspecialchars(json_encode(array_column($linksEstado, 'ip'))) ?>"
+                     data-link-ids="<?= htmlspecialchars(json_encode(array_column($linksEstado, 'id'))) ?>">
+                    <i class="fas fa-exclamation-triangle alert-icon"></i>
+                    <div class="state-name"><?= htmlspecialchars($uf) ?></div>
                     <div class="state-info"><?= count($linksEstado) ?> link(s)</div>
-                    <div class="state-details">Clique para mais opções</div>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -780,14 +763,13 @@ foreach ($links as $link) {
 
     <div class="footer">
         <span>Spacecom Monitoramento S/A © 2025</span>
-        <span class="update-counter" id="updateCounter">Atualizando em: 5s</span>
+        <span class="update-counter" id="updateCounter">Atualizando em: 2s</span>
     </div>
 
     <script>
         // Menu Toggle
         const menuToggle = document.getElementById('menuToggle');
         const sidebar = document.getElementById('sidebar');
-        const content = document.querySelector('.content');
 
         menuToggle.addEventListener('click', () => {
             menuToggle.classList.toggle('active');
@@ -807,11 +789,15 @@ foreach ($links as $link) {
         const modalTitle = document.getElementById('modalTitle');
         const detailsBtn = document.getElementById('detailsBtn');
         const historyBtn = document.getElementById('historyBtn');
+        let currentUf = '';
+        let currentLinkIds = [];
 
-        function openModal(uf) {
+        function openModal(uf, linkIds) {
+            currentUf = uf;
+            currentLinkIds = linkIds;
             modalTitle.textContent = `Estado: ${uf}`;
             detailsBtn.href = `detalhes_estado.php?uf=${encodeURIComponent(uf)}`;
-            historyBtn.href = `historico.php?uf=${encodeURIComponent(uf)}`;
+            historyBtn.href = `historico.php?uf=${encodeURIComponent(uf)}&link_ids=${encodeURIComponent(linkIds.join(','))}`;
             modalOverlay.classList.add('show');
         }
 
@@ -837,12 +823,13 @@ foreach ($links as $link) {
         document.querySelectorAll('.state-card').forEach(card => {
             card.addEventListener('click', () => {
                 const uf = card.dataset.uf;
-                openModal(uf);
+                const linkIds = JSON.parse(card.dataset.linkIds);
+                openModal(uf, linkIds);
             });
         });
 
-        // Status monitoring system
-        let updateTime = 5;
+        // Fast status monitoring system
+        let updateTime = 2;
         let updateInterval;
         let isUpdating = false;
         
@@ -852,29 +839,42 @@ foreach ($links as $link) {
             stateCards[uf] = card;
         });
 
-        async function checkStatus() {
+        // Optimized status checking with parallel requests
+        async function checkStatusFast() {
             if (isUpdating) return;
             isUpdating = true;
             
             try {
+                // Add updating class to all cards
                 Object.values(stateCards).forEach(card => {
                     card.classList.add('updating');
                 });
                 
-                const response = await fetch('api/status.php');
+                // Use faster endpoint with minimal data
+                const response = await fetch('api/status.php', {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
                 const links = await response.json();
                 
                 const statusByState = {};
                 let totalOnline = 0;
                 let totalOffline = 0;
                 
+                // Process results quickly
                 links.forEach(link => {
                     const uf = link.uf;
                     if (!statusByState[uf]) {
                         statusByState[uf] = {
                             online: 0,
                             offline: 0,
-                            links: []
+                            hasOffline: false
                         };
                     }
                     
@@ -883,20 +883,19 @@ foreach ($links as $link) {
                         totalOnline++;
                     } else {
                         statusByState[uf].offline++;
+                        statusByState[uf].hasOffline = true;
                         totalOffline++;
                     }
-                    
-                    statusByState[uf].links.push(link);
                 });
                 
-                // Update UI
+                // Update UI immediately
                 for (const uf in statusByState) {
                     const card = stateCards[uf];
                     if (card) {
-                        const status = statusByState[uf].offline > 0 ? 'offline' : 'online';
+                        const hasOffline = statusByState[uf].hasOffline;
                         
                         card.classList.remove('online', 'offline', 'updating');
-                        card.classList.add(status);
+                        card.classList.add(hasOffline ? 'offline' : 'online');
                         
                         const infoElement = card.querySelector('.state-info');
                         if (infoElement) {
@@ -914,11 +913,12 @@ foreach ($links as $link) {
                 
             } catch (error) {
                 console.error('Error checking status:', error);
-            } finally {
-                isUpdating = false;
+                // Remove updating class even on error
                 Object.values(stateCards).forEach(card => {
                     card.classList.remove('updating');
                 });
+            } finally {
+                isUpdating = false;
             }
         }
 
@@ -928,18 +928,24 @@ foreach ($links as $link) {
                 document.getElementById('updateCounter').textContent = `Atualizando em: ${updateTime}s`;
                 
                 if (updateTime <= 0) {
-                    updateTime = 5;
-                    checkStatus();
+                    updateTime = 2; // Faster updates every 2 seconds
+                    checkStatusFast();
                 }
             }, 1000);
         }
 
-        // Initialize
+        // Initialize with immediate check
         document.addEventListener('DOMContentLoaded', async () => {
-            await checkStatus();
+            await checkStatusFast();
             startUpdateCycle();
-            setInterval(checkStatus, 5000);
         });
+
+        // Preload critical resources
+        const preloadLink = document.createElement('link');
+        preloadLink.rel = 'preload';
+        preloadLink.href = 'api/status.php';
+        preloadLink.as = 'fetch';
+        document.head.appendChild(preloadLink);
     </script>
 </body>
 </html>

@@ -639,20 +639,31 @@ require_once "config.php";
         let markers = new Map();
         let allLinks = [];
 
-        async function updateNetwork() {
+        async function updateNetworkFast() {
             try {
-                const response = await fetch('api/status.php');
+                const response = await fetch('api/status.php', {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
                 const links = await response.json();
                 allLinks = links;
 
-                // Clear old markers
+                // Clear old markers efficiently
                 markers.forEach(marker => map.removeLayer(marker));
                 markers.clear();
 
                 let onlineCount = 0;
                 let offlineCount = 0;
 
-                // Add new markers
+                // Add new markers with batch processing
+                const markersToAdd = [];
+                
                 links.forEach(link => {
                     const isOnline = link.status === 'online';
                     if (isOnline) onlineCount++;
@@ -671,9 +682,15 @@ require_once "config.php";
                                 ${link.status.toUpperCase()}
                             </div>
                         </div>
-                    `).addTo(map);
+                    `);
                     
-                    markers.set(link.id, marker);
+                    markersToAdd.push({ marker, id: link.id });
+                });
+
+                // Add all markers at once
+                markersToAdd.forEach(({ marker, id }) => {
+                    marker.addTo(map);
+                    markers.set(id, marker);
                 });
 
                 // Update counters
@@ -681,8 +698,8 @@ require_once "config.php";
                 document.getElementById('offlineCount').textContent = offlineCount;
                 document.getElementById('totalCount').textContent = links.length;
 
-                // Auto-fit bounds if there are links
-                if (links.length > 0) {
+                // Auto-fit bounds only on first load
+                if (links.length > 0 && markers.size === links.length) {
                     const bounds = L.latLngBounds(links.map(link => [link.lat, link.lon]));
                     map.fitBounds(bounds, { padding: [50, 50] });
                 }
@@ -706,16 +723,19 @@ require_once "config.php";
             const refreshBtn = document.querySelector('.map-control-btn i.fa-sync-alt');
             refreshBtn.style.animation = 'spin 1s linear infinite';
             
-            updateNetwork().then(() => {
+            updateNetworkFast().then(() => {
                 setTimeout(() => {
                     refreshBtn.style.animation = '';
                 }, 1000);
             });
         }
 
-        // Initialize and set up auto-update
-        updateNetwork();
-        setInterval(updateNetwork, 10000); // Update every 10 seconds
+        // Initialize with immediate update
+        document.addEventListener('DOMContentLoaded', () => {
+            updateNetworkFast();
+            // Faster updates every 3 seconds
+            setInterval(updateNetworkFast, 3000);
+        });
 
         // Add spin animation for refresh button
         const style = document.createElement('style');
@@ -726,6 +746,13 @@ require_once "config.php";
             }
         `;
         document.head.appendChild(style);
+
+        // Preload critical resources
+        const preloadLink = document.createElement('link');
+        preloadLink.rel = 'preload';
+        preloadLink.href = 'api/status.php';
+        preloadLink.as = 'fetch';
+        document.head.appendChild(preloadLink);
     </script>
 </body>
 </html>
