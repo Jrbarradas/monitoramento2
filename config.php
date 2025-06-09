@@ -1,7 +1,7 @@
 <?php
 $host = "localhost";
 $dbname = "monitoramento";
-$username = "app_user";
+$username = "root";
 $password = "Kangoo.2010"; // Substitua pela senha do MySQL
 
 try {

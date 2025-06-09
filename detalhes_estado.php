@@ -8,7 +8,7 @@ if(!isset($_GET['uf'])) {
 $uf = $_GET['uf'];
 $nomeEstado = getNomeEstado($uf);
 
-$stmt = $pdo->prepare("SELECT * FROM links WHERE uf = :uf");
+$stmt = $pdo->prepare("SELECT * FROM links WHERE uf = :uf ORDER BY nome");
 $stmt->bindParam(':uf', $uf, PDO::PARAM_STR);
 $stmt->execute();
 $links = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -26,272 +26,533 @@ $linkIds = array_column($links, 'id');
     <meta charset="UTF-8">
     <title>Links do Estado - <?= $nomeEstado ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: #f0f2f5;
+        :root {
+            --primary-dark: #0f172a;
+            --secondary-dark: #1e293b;
+            --accent-dark: #334155;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --border-color: #475569;
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(148, 163, 184, 0.1);
+        }
+
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
         }
 
         .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            color: white;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            color: var(--text-primary);
             padding: 1rem 2rem;
             display: flex;
             align-items: center;
-            height: 70px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
+            height: 80px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
-        .voltar-btn {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
+        .back-btn {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 1rem;
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: 0.3s;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             margin-right: 20px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
         }
 
-        .voltar-btn:hover {
-            background: rgba(255,255,255,0.2);
+        .back-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
         }
 
-        .conteudo {
-            padding: 100px 30px 80px;
-            max-width: 1200px;
+        .back-btn:hover::before {
+            left: 100%;
+        }
+
+        .back-btn:hover {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--success);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            flex-grow: 1;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+            background: linear-gradient(135deg, var(--text-primary), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .content {
+            padding: 120px 30px 100px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
-        .titulo-estado {
+        .page-title {
             text-align: center;
-            margin-bottom: 30px;
-            color: #2c3e50;
+            margin-bottom: 40px;
+            color: var(--text-primary);
+            font-size: 2.5rem;
+            font-weight: 700;
         }
 
-        .links-container {
+        .state-info {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .state-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .links-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
         }
 
         .link-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            padding: 20px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-left: 4px solid #3498db; /* BORDA AZUL PADRÃO */
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 25px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
-        /* REMOVIDAS AS CLASSES ONLINE/OFFLINE PARA BORDA */
-        
-        .link-card .nome {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 10px;
+        .link-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.02), transparent);
+            transition: left 0.8s;
         }
 
-        .link-card .detalhe {
+        .link-card:hover::before {
+            left: 100%;
+        }
+
+        .link-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .link-card.online {
+            border-color: var(--success);
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
+        }
+
+        .link-card.offline {
+            border-color: var(--error);
+            box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
+            animation: pulse-error 2s infinite;
+        }
+
+        @keyframes pulse-error {
+            0% {
+                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
+                border-color: var(--error);
+            }
+            50% {
+                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.4);
+                border-color: #ff6b6b;
+            }
+            100% {
+                box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
+                border-color: var(--error);
+            }
+        }
+
+        .link-header {
             display: flex;
-            margin-bottom: 8px;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
         }
 
-        .link-card .detalhe .rotulo {
-            font-weight: 500;
-            color: #555;
-            width: 100px;
+        .link-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 5px;
         }
 
-        .link-card .detalhe .valor {
-            flex: 1;
-            color: #333;
-        }
-
-        .status {
-            display: inline-flex;
+        .link-status {
+            display: flex;
             align-items: center;
-            padding: 5px 12px;
+            gap: 8px;
+            padding: 6px 12px;
             border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .link-status.online {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .link-status.offline {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .link-status.online .status-indicator {
+            background: var(--success);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+        }
+
+        .link-status.offline .status-indicator {
+            background: var(--error);
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .link-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .detail-icon {
+            width: 20px;
+            color: var(--success);
+            font-size: 1rem;
+        }
+
+        .detail-label {
             font-weight: 500;
-            font-size: 0.9rem;
+            color: var(--text-secondary);
+            min-width: 80px;
         }
 
-        .status.online {
-            background: rgba(40, 167, 69, 0.15);
-            color: #28a745;
+        .detail-value {
+            color: var(--text-primary);
+            font-weight: 500;
         }
 
-        .status.offline {
-            background: rgba(220, 53, 69, 0.15);
-            color: #dc3545;
+        .updating {
+            opacity: 0.7;
+            transform: scale(0.98);
         }
 
-        /* CORREÇÃO: CORES PARA OS ÍCONES */
-        .status.online i.fas.fa-circle {
-            color: #28a745; /* VERDE PARA ONLINE */
-        }
-
-        .status.offline i.fas.fa-circle {
-            color: #dc3545; /* VERMELHO PARA OFFLINE */
-        }
-
-        .status-icon {
-            margin-right: 5px;
-            font-size: 0.8rem;
-        }
-        
-        .rodape {
+        .footer {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(44, 62, 80, 0.95);
-            color: #ecf0f1;
-            padding: 18px 25px;
-            font-size: 0.95rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            padding: 20px 30px;
+            font-size: 0.9rem;
             text-align: center;
-            backdrop-filter: blur(8px);
-            border-top: 1px solid rgba(255,255,255,0.1);
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
             z-index: 1000;
         }
 
-        .atualizacao-contador {
-            font-family: 'Roboto Mono', monospace;
-            background: rgba(255,255,255,0.1);
-            padding: 6px 12px;
+        .update-counter {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 8px 16px;
             border-radius: 20px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            color: var(--success);
+            font-weight: 500;
         }
-        
-        .updating {
-            filter: brightness(0.9);
-            transform: scale(0.98);
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 100px 15px 80px;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .links-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .state-stats {
+                gap: 20px;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 1.4rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <button class="voltar-btn" onclick="window.history.back();">
+        <a href="javascript:history.back()" class="back-btn">
             <i class="fas fa-arrow-left"></i> Voltar
-        </button>
+        </a>
         <h1>Links do Estado: <?= htmlspecialchars($nomeEstado) ?></h1>
     </div>
 
-    <div class="conteudo">
-        <h2 class="titulo-estado">Detalhes dos Links - <?= htmlspecialchars($uf) ?></h2>
-        <div class="links-container" id="links-container">
+    <div class="content">
+        <h2 class="page-title"><?= htmlspecialchars($uf) ?></h2>
+        
+        <div class="state-info">
+            <div class="state-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalLinks"><?= count($links) ?></div>
+                    <div class="stat-label">Total de Links</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="onlineLinks" style="color: var(--success);">0</div>
+                    <div class="stat-label">Online</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="offlineLinks" style="color: var(--error);">0</div>
+                    <div class="stat-label">Offline</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="links-grid" id="linksGrid">
             <?php foreach ($links as $link): ?>
                 <div class="link-card" data-id="<?= $link['id'] ?>">
-                    <div class="nome"><?= htmlspecialchars($link['nome']) ?></div>
-                    <div class="detalhe">
-                        <span class="rotulo">IP:</span>
-                        <span class="valor"><?= htmlspecialchars($link['ip']) ?></span>
+                    <div class="link-header">
+                        <div>
+                            <div class="link-name"><?= htmlspecialchars($link['nome']) ?></div>
+                        </div>
+                        <div class="link-status" id="status-<?= $link['id'] ?>">
+                            <div class="status-indicator"></div>
+                            <span>Verificando...</span>
+                        </div>
                     </div>
-                    <div class="detalhe">
-                        <span class="rotulo">Endereço:</span>
-                        <span class="valor"><?= htmlspecialchars($link['endereco']) ?></span>
-                    </div>
-                    <div class="detalhe">
-                        <span class="rotulo">Status:</span>
-                        <span class="valor">
-                            <span class="status <?= $link['status'] ?>" id="status-<?= $link['id'] ?>">
-                                <i class="fas fa-circle status-icon"></i> 
-                                <?= ucfirst($link['status']) ?>
-                            </span>
-                        </span>
+                    <div class="link-details">
+                        <div class="detail-item">
+                            <i class="fas fa-network-wired detail-icon"></i>
+                            <span class="detail-label">IP:</span>
+                            <span class="detail-value"><?= htmlspecialchars($link['ip']) ?></span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt detail-icon"></i>
+                            <span class="detail-label">Endereço:</span>
+                            <span class="detail-value"><?= htmlspecialchars($link['endereco']) ?></span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-city detail-icon"></i>
+                            <span class="detail-label">Cidade:</span>
+                            <span class="detail-value"><?= htmlspecialchars($link['cidade']) ?></span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-user detail-icon"></i>
+                            <span class="detail-label">Contato:</span>
+                            <span class="detail-value"><?= htmlspecialchars($link['contato']) ?></span>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
     </div>
 
-    <div class="rodape">
-        Spacecom Monitoramento S/A © 2025 
-        <span class="atualizacao-contador" id="contador">Atualizando em: 5s</span>
+    <div class="footer">
+        <span>Spacecom Monitoramento S/A © 2025</span>
+        <span class="update-counter" id="updateCounter">Atualizando em: 2s</span>
     </div>
 
     <script>
-        let tempoRestante = 5;
-        let intervaloAtualizacao;
-        let verificacaoEmAndamento = false;
+        let updateTime = 2;
+        let updateInterval;
+        let isUpdating = false;
         const linkIds = <?= json_encode($linkIds) ?>;
 
-        async function verificarStatus() {
-            if(verificacaoEmAndamento) return;
-            verificacaoEmAndamento = true;
+        async function checkStatusFast() {
+            if (isUpdating) return;
+            isUpdating = true;
             
             try {
-                linkIds.forEach(id => {
-                    const card = document.querySelector(`.link-card[data-id="${id}"]`);
-                    if(card) card.classList.add('updating');
+                // Add updating class to all cards
+                document.querySelectorAll('.link-card').forEach(card => {
+                    card.classList.add('updating');
                 });
                 
                 const response = await fetch('api/status.php', {
-                    method: 'POST',
+                    method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ ids: linkIds })
-                });
-                
-                const linksStatus = await response.json();
-                
-                linksStatus.forEach(link => {
-                    const statusElement = document.getElementById(`status-${link.id}`);
-                    if(statusElement) {
-                        // Atualiza o texto do status
-                        statusElement.textContent = link.status.charAt(0).toUpperCase() + link.status.slice(1);
-                        
-                        // Atualiza a classe do elemento de status
-                        statusElement.className = `status ${link.status}`;
-                        
-                        // Adiciona o ícone novamente
-                        const icon = document.createElement('i');
-                        icon.className = 'fas fa-circle status-icon';
-                        statusElement.prepend(icon);
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
                     }
                 });
                 
-            } catch(error) {
-                console.error('Erro na verificação de status:', error);
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const links = await response.json();
+                
+                let onlineCount = 0;
+                let offlineCount = 0;
+                
+                links.forEach(link => {
+                    if (linkIds.includes(parseInt(link.id))) {
+                        const statusElement = document.getElementById(`status-${link.id}`);
+                        const card = document.querySelector(`.link-card[data-id="${link.id}"]`);
+                        
+                        if (statusElement && card) {
+                            // Update status display
+                            statusElement.className = `link-status ${link.status}`;
+                            statusElement.innerHTML = `
+                                <div class="status-indicator"></div>
+                                <span>${link.status.toUpperCase()}</span>
+                            `;
+                            
+                            // Update card styling
+                            card.classList.remove('online', 'offline');
+                            card.classList.add(link.status);
+                            
+                            // Count status
+                            if (link.status === 'online') {
+                                onlineCount++;
+                            } else {
+                                offlineCount++;
+                            }
+                        }
+                    }
+                });
+                
+                // Update counters
+                document.getElementById('onlineLinks').textContent = onlineCount;
+                document.getElementById('offlineLinks').textContent = offlineCount;
+                
+            } catch (error) {
+                console.error('Error checking status:', error);
             } finally {
-                verificacaoEmAndamento = false;
+                isUpdating = false;
+                
+                // Remove updating class
+                document.querySelectorAll('.link-card').forEach(card => {
+                    card.classList.remove('updating');
+                });
             }
         }
 
-        function iniciarCicloAtualizacao() {
-            intervaloAtualizacao = setInterval(() => {
-                tempoRestante--;
-                document.getElementById('contador').textContent = `Atualizando em: ${tempoRestante}s`;
+        function startUpdateCycle() {
+            updateInterval = setInterval(() => {
+                updateTime--;
+                document.getElementById('updateCounter').textContent = `Atualizando em: ${updateTime}s`;
                 
-                if(tempoRestante <= 0) {
-                    tempoRestante = 5;
-                    verificarStatus();
+                if (updateTime <= 0) {
+                    updateTime = 2;
+                    checkStatusFast();
                 }
             }, 1000);
         }
 
+        // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
-            await verificarStatus();
-            iniciarCicloAtualizacao();
-            setInterval(verificarStatus, 5000);
+            await checkStatusFast();
+            startUpdateCycle();
         });
     </script>
 </body>
@@ -331,3 +592,4 @@ function getNomeEstado($uf) {
     ];
     return $estados[strtoupper($uf)] ?? 'Estado Desconhecido';
 }
+?>
