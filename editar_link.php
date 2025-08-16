@@ -6,16 +6,18 @@ header('Content-Type: application/json');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $data = json_decode(file_get_contents('php://input'), true);
-        
+
         if (empty($data['id']) || !is_numeric($data['id'])) {
             throw new Exception("ID inválido");
         }
 
-        // Validação rigorosa
+        // Validação simplificada
         $campos = [
-            'nome' => filter_var($data['nome'] ?? '', FILTER_SANITIZE_STRING),
-            'ip' => filter_var($data['ip'] ?? '', FILTER_VALIDATE_IP),
-            'uf' => substr(strtoupper(preg_replace('/[^A-Za-z]/', '', $data['uf'] ?? '')), 0, 3)
+            'nome' => trim($data['nome']),
+            'ip' => filter_var($data['ip'], FILTER_VALIDATE_IP),
+            'uf' => substr(strtoupper(preg_replace('/[^A-Za-z]/', '', $data['uf'])), 0, 3),
+            'endereco' => trim($data['endereco']),
+            'contato' => trim($data['contato'])
         ];
 
         if (!$campos['ip'] || strlen($campos['uf']) < 2) {
@@ -26,7 +28,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             nome = :nome,
             ip = :ip,
             endereco = :endereco,
-            cidade = :cidade,
             uf = :uf,
             contato = :contato,
             updated_at = NOW()
@@ -36,10 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':id' => (int)$data['id'],
             ':nome' => substr($campos['nome'], 0, 255),
             ':ip' => $campos['ip'],
-            ':endereco' => substr($data['endereco'] ?? '', 0, 255),
-            ':cidade' => substr($data['cidade'] ?? '', 0, 100),
+            ':endereco' => substr($campos['endereco'], 0, 255),
             ':uf' => $campos['uf'],
-            ':contato' => substr($data['contato'] ?? '', 0, 100)
+            ':contato' => substr($campos['contato'], 0, 100)
         ];
 
         if (!$stmt->execute($params)) {
@@ -50,10 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } catch (Exception $e) {
         http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'message' => $e->getMessage()
-        ]);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 } else {
     http_response_code(405);

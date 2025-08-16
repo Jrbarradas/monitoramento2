@@ -1,5 +1,31 @@
 <?php
 require_once "config.php";
+
+session_start();
+require_once "config.php";
+
+// Verificar se o usuário está logado
+if (!isset($_SESSION['id'])) {
+    header("Location: login.php");
+    exit;
+}
+
+// Verificar se o usuário é admin
+$is_admin = false;
+$estado_usuario = $_SESSION['estado'] ?? '';
+try {
+    $stmt = $pdo->prepare("SELECT nivel_acesso FROM usuarios WHERE id = ?");
+    $stmt->execute([$_SESSION['id']]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($user) {
+        $is_admin = ($user['nivel_acesso'] === 'admin');
+    }
+} catch (PDOException $e) {
+    die("Erro ao verificar permissões: " . $e->getMessage());
+}
+?>
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -297,7 +323,7 @@ require_once "config.php";
         .legend {
             position: absolute;
             bottom: 20px;
-            left: 20px;
+            right: 20px;
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
@@ -505,40 +531,65 @@ require_once "config.php";
             <div class="sidebar-subtitle">Sistema de Monitoramento</div>
         </div>
         <nav class="nav-menu">
-            <div class="nav-item">
+           <div class="nav-item">
                 <a href="index.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-home"></i></div>
                     <div class="nav-text">Dashboard</div>
                 </a>
             </div>
+            <?php if ($is_admin): ?>
             <div class="nav-item">
                 <a href="cadastrar.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
-                    <div class="nav-text">Cadastrar Link</div>
+                    <div class="nav-text">Adicionar Novo Link</div>
                 </a>
             </div>
+            <?php endif; ?>
+            <?php if ($is_admin): ?>
             <div class="nav-item">
                 <a href="list_links.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-list"></i></div>
-                    <div class="nav-text">Lista de Links</div>
+                    <div class="nav-text">Gerenciamento de Links</div>
                 </a>
             </div>
+            <?php endif; ?>
+            <?php if ($is_admin): ?>
             <div class="nav-item">
                 <a href="teste_ping.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-network-wired"></i></div>
-                    <div class="nav-text">Teste de Ping</div>
+                    <div class="nav-text">Verificação de Status</div>
                 </a>
             </div>
+            <?php endif; ?>
+            <?php if ($is_admin): ?>
             <div class="nav-item">
                 <a href="mapa.php" class="nav-link active">
                     <div class="nav-icon"><i class="fas fa-map-marked-alt"></i></div>
                     <div class="nav-text">Mapa da Rede</div>
                 </a>
             </div>
+            <?php endif; ?>
+            <?php if ($is_admin): ?>
             <div class="nav-item">
                 <a href="historico.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-history"></i></div>
-                    <div class="nav-text">Histórico</div>
+                    <div class="nav-text">Logs de Monitoramento</div>
+                </a>
+            </div>
+            <?php endif; ?>
+            <?php if ($is_admin): ?>
+                <div class="nav-item">
+                    <a href="usuarios.php" class="nav-link">
+                        <div class="nav-icon"><i class="fas fa-users"></i></div>
+                        <div class="nav-text">Administração de Usuários</div>
+                    </a>
+                </div>
+            <?php endif; ?>
+
+            <div class="nav-item">
+                <a href="logout.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
+                    <div class="nav-text">Logout</div>
                 </a>
             </div>
         </nav>
@@ -547,22 +598,6 @@ require_once "config.php";
     <div class="content">
         <div id="map"></div>
         
-        <div class="status-counter">
-            <div class="counter-title">Status da Rede</div>
-            <div class="counter-item">
-                <span class="counter-label">Online:</span>
-                <span class="counter-value online" id="onlineCount">0</span>
-            </div>
-            <div class="counter-item">
-                <span class="counter-label">Offline:</span>
-                <span class="counter-value offline" id="offlineCount">0</span>
-            </div>
-            <div class="counter-item">
-                <span class="counter-label">Total:</span>
-                <span class="counter-value" id="totalCount">0</span>
-            </div>
-        </div>
-
         <div class="map-controls">
             <button class="map-control-btn" onclick="centerMap()" title="Centralizar Mapa">
                 <i class="fas fa-crosshairs"></i>
@@ -639,18 +674,18 @@ require_once "config.php";
         let markers = new Map();
         let allLinks = [];
 
-        async function updateNetworkFast() {
+         async function updateNetworkFast() {
             try {
-                const response = await fetch('api/status.php', {
+                const url = 'api/status.php' + (<?= $is_admin ? 'false' : 'true' ?> ? `?uf=<?= urlencode($estado_usuario) ?>` : '');
+                const response = await fetch(url, {
                     method: 'GET',
                     headers: {
                         'Cache-Control': 'no-cache',
                         'Pragma': 'no-cache'
                     }
                 });
-                
+
                 if (!response.ok) throw new Error('Network response was not ok');
-                
                 const links = await response.json();
                 allLinks = links;
 
@@ -658,16 +693,9 @@ require_once "config.php";
                 markers.forEach(marker => map.removeLayer(marker));
                 markers.clear();
 
-                let onlineCount = 0;
-                let offlineCount = 0;
-
-                // Add new markers with batch processing
-                const markersToAdd = [];
-                
+                // Add new markers
                 links.forEach(link => {
                     const isOnline = link.status === 'online';
-                    if (isOnline) onlineCount++;
-                    else offlineCount++;
 
                     const marker = L.marker([link.lat, link.lon], {
                         icon: isOnline ? onlineIcon : offlineIcon
@@ -682,28 +710,25 @@ require_once "config.php";
                                 ${link.status.toUpperCase()}
                             </div>
                         </div>
-                    `);
+                    `).on('mouseover', function() {
+                        this.setIcon(L.divIcon({
+                            className: 'custom-marker-hover',
+                            html: `
+                                <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="9" fill="${isOnline ? '#10b981' : '#ef4444'}" stroke="#ffffff" stroke-width="2" />
+                                    <circle cx="12" cy="12" r="7" fill="transparent" stroke="#ffffff" stroke-width="1" />
+                                </svg>
+                            `,
+                            iconSize: [24, 24],
+                            iconAnchor: [12, 12]
+                        }));
+                    }).on('mouseout', function() {
+                        this.setIcon(isOnline ? onlineIcon : offlineIcon);
+                    });
                     
-                    markersToAdd.push({ marker, id: link.id });
-                });
-
-                // Add all markers at once
-                markersToAdd.forEach(({ marker, id }) => {
                     marker.addTo(map);
-                    markers.set(id, marker);
+                    markers.set(link.id, marker);
                 });
-
-                // Update counters
-                document.getElementById('onlineCount').textContent = onlineCount;
-                document.getElementById('offlineCount').textContent = offlineCount;
-                document.getElementById('totalCount').textContent = links.length;
-
-                // Auto-fit bounds only on first load
-                if (links.length > 0 && markers.size === links.length) {
-                    const bounds = L.latLngBounds(links.map(link => [link.lat, link.lon]));
-                    map.fitBounds(bounds, { padding: [50, 50] });
-                }
-
             } catch (error) {
                 console.error('Error updating network:', error);
             }
@@ -733,8 +758,7 @@ require_once "config.php";
         // Initialize with immediate update
         document.addEventListener('DOMContentLoaded', () => {
             updateNetworkFast();
-            // Faster updates every 3 seconds
-            setInterval(updateNetworkFast, 3000);
+            setInterval(updateNetworkFast, 10000);
         });
 
         // Add spin animation for refresh button
@@ -746,13 +770,6 @@ require_once "config.php";
             }
         `;
         document.head.appendChild(style);
-
-        // Preload critical resources
-        const preloadLink = document.createElement('link');
-        preloadLink.rel = 'preload';
-        preloadLink.href = 'api/status.php';
-        preloadLink.as = 'fetch';
-        document.head.appendChild(preloadLink);
     </script>
 </body>
 </html>

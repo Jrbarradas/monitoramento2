@@ -8,7 +8,8 @@ if(!isset($_GET['uf'])) {
 $uf = $_GET['uf'];
 $nomeEstado = getNomeEstado($uf);
 
-$stmt = $pdo->prepare("SELECT * FROM links WHERE uf = :uf ORDER BY nome");
+// Obter todos os links do estado com status
+$stmt = $pdo->prepare("SELECT * FROM links WHERE uf = :uf");
 $stmt->bindParam(':uf', $uf, PDO::PARAM_STR);
 $stmt->execute();
 $links = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -18,6 +19,25 @@ if(count($links) === 0) {
 }
 
 $linkIds = array_column($links, 'id');
+
+// Criar mapa de status a partir dos próprios links
+$statusMap = [];
+foreach ($links as $link) {
+    $statusMap[$link['id']] = $link['status'] ?? 'offline';
+}
+
+// Classificar links: offline primeiro, depois online, e ambos ordenados por nome
+usort($links, function($a, $b) use ($statusMap) {
+    $statusA = $statusMap[$a['id']];
+    $statusB = $statusMap[$b['id']];
+    
+    // Offline vem antes de online
+    if ($statusA === 'offline' && $statusB !== 'offline') return -1;
+    if ($statusA !== 'offline' && $statusB === 'offline') return 1;
+    
+    // Mesmo status? Ordena por nome
+    return strcmp($a['nome'], $b['nome']);
+});
 ?>
 
 <!DOCTYPE html>
@@ -177,8 +197,8 @@ $linkIds = array_column($links, 'id');
 
         .links-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Cards mais compactos */
+            gap: 20px;
         }
 
         .link-card {
@@ -186,11 +206,35 @@ $linkIds = array_column($links, 'id');
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 16px;
-            padding: 25px;
+            padding: 15px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            height: 100px; /* Altura fixa inicial */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .link-card:hover {
+            height: auto; /* Altura automática no hover */
+            min-height: 100px;
+            z-index: 10; /* Para ficar sobre outros cards */
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .link-card.online {
+            border-color: var(--success);
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
+        }
+
+        .link-card.offline {
+            border-color: var(--error);
+            box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
+            animation: pulse-error 2s infinite;
         }
 
         .link-card::before {
@@ -206,22 +250,6 @@ $linkIds = array_column($links, 'id');
 
         .link-card:hover::before {
             left: 100%;
-        }
-
-        .link-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        .link-card.online {
-            border-color: var(--success);
-            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
-        }
-
-        .link-card.offline {
-            border-color: var(--error);
-            box-shadow: 0 8px 32px rgba(239, 68, 68, 0.2);
-            animation: pulse-error 2s infinite;
         }
 
         @keyframes pulse-error {
@@ -243,44 +271,41 @@ $linkIds = array_column($links, 'id');
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .link-name {
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 5px;
+            /* Nome completo visível */
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Máximo de 2 linhas */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+            max-height: 2.6em; /* 2 linhas * 1.3 line-height */
         }
 
         .link-status {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .link-status.online {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .link-status.offline {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--error);
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-left: 10px;
+            position: relative;
         }
 
         .status-indicator {
-            width: 8px;
-            height: 8px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
+            position: relative;
         }
 
         .link-status.online .status-indicator {
@@ -294,6 +319,28 @@ $linkIds = array_column($links, 'id');
             animation: blink 1s infinite;
         }
 
+        /* Tooltip para o status */
+        .status-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--secondary-dark);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 20;
+        }
+
+        .link-status:hover .status-tooltip {
+            opacity: 1;
+        }
+
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
@@ -302,30 +349,44 @@ $linkIds = array_column($links, 'id');
         .link-details {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
+            max-height: 0; /* Inicialmente oculto */
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .link-card:hover .link-details {
+            max-height: 500px; /* Altura máxima para mostrar tudo */
+            opacity: 1;
+            margin-top: 10px;
         }
 
         .detail-item {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .detail-icon {
-            width: 20px;
+            width: 18px;
             color: var(--success);
-            font-size: 1rem;
+            font-size: 0.9rem;
+            flex-shrink: 0;
         }
 
         .detail-label {
             font-weight: 500;
             color: var(--text-secondary);
-            min-width: 80px;
+            min-width: 70px;
+            font-size: 0.85rem;
         }
 
         .detail-value {
             color: var(--text-primary);
             font-weight: 500;
+            font-size: 0.9rem;
+            word-break: break-word; /* Quebra palavras longas */
         }
 
         .updating {
@@ -338,17 +399,18 @@ $linkIds = array_column($links, 'id');
             bottom: 0;
             left: 0;
             right: 0;
+            height: 40px;
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border-top: 1px solid var(--glass-border);
             color: var(--text-secondary);
-            padding: 20px 30px;
-            font-size: 0.9rem;
+            padding: 8px 0px;
+            font-size: 0.8rem;
             text-align: center;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 10px;
             z-index: 1000;
         }
 
@@ -374,11 +436,11 @@ $linkIds = array_column($links, 'id');
 
             .links-grid {
                 grid-template-columns: 1fr;
-                gap: 20px;
+                gap: 15px;
             }
 
             .state-stats {
-                gap: 20px;
+                gap: 15px;
             }
 
             .stat-value {
@@ -420,15 +482,17 @@ $linkIds = array_column($links, 'id');
         </div>
 
         <div class="links-grid" id="linksGrid">
-            <?php foreach ($links as $link): ?>
-                <div class="link-card" data-id="<?= $link['id'] ?>">
+            <?php foreach ($links as $link): 
+                $status = $statusMap[$link['id']] ?? 'offline';
+                $statusClass = ($status === 'online') ? 'online' : 'offline';
+                $statusText = ($status === 'online') ? 'ONLINE' : 'OFFLINE';
+            ?>
+                <div class="link-card <?= $statusClass ?>" data-id="<?= $link['id'] ?>" data-status="<?= $status ?>">
                     <div class="link-header">
-                        <div>
-                            <div class="link-name"><?= htmlspecialchars($link['nome']) ?></div>
-                        </div>
-                        <div class="link-status" id="status-<?= $link['id'] ?>">
+                        <div class="link-name"><?= htmlspecialchars($link['nome']) ?></div>
+                        <div class="link-status <?= $statusClass ?>" id="status-<?= $link['id'] ?>">
                             <div class="status-indicator"></div>
-                            <span>Verificando...</span>
+                            <div class="status-tooltip"><?= $statusText ?></div>
                         </div>
                     </div>
                     <div class="link-details">
@@ -468,6 +532,7 @@ $linkIds = array_column($links, 'id');
         let updateInterval;
         let isUpdating = false;
         const linkIds = <?= json_encode($linkIds) ?>;
+        let lastStatusMap = <?= json_encode($statusMap) ?>;
 
         async function checkStatusFast() {
             if (isUpdating) return;
@@ -493,25 +558,45 @@ $linkIds = array_column($links, 'id');
                 
                 let onlineCount = 0;
                 let offlineCount = 0;
+                const newStatusMap = {};
+                let statusChanged = false;
                 
+                // Atualizar status e verificar mudanças
                 links.forEach(link => {
                     if (linkIds.includes(parseInt(link.id))) {
+                        newStatusMap[link.id] = link.status;
+                        
                         const statusElement = document.getElementById(`status-${link.id}`);
                         const card = document.querySelector(`.link-card[data-id="${link.id}"]`);
                         
                         if (statusElement && card) {
-                            // Update status display
+                            // Verifica se houve mudança de status
+                            const oldStatus = lastStatusMap[link.id] || 'offline';
+                            if (oldStatus !== link.status) {
+                                statusChanged = true;
+                                
+                                // Efeito visual para mudança de status
+                                if (link.status === 'online') {
+                                    card.classList.remove('offline');
+                                    card.classList.add('online');
+                                    card.style.animation = 'pulse-success 1s';
+                                    setTimeout(() => card.style.animation = '', 1000);
+                                } else {
+                                    card.classList.remove('online');
+                                    card.classList.add('offline');
+                                    card.style.animation = 'pulse-error 1s';
+                                    setTimeout(() => card.style.animation = '', 1000);
+                                }
+                            }
+                            
+                            // Atualizar exibição do status
                             statusElement.className = `link-status ${link.status}`;
-                            statusElement.innerHTML = `
-                                <div class="status-indicator"></div>
-                                <span>${link.status.toUpperCase()}</span>
-                            `;
+                            statusElement.querySelector('.status-tooltip').textContent = link.status.toUpperCase();
                             
-                            // Update card styling
-                            card.classList.remove('online', 'offline');
-                            card.classList.add(link.status);
+                            // Atualizar data-status
+                            card.dataset.status = link.status;
                             
-                            // Count status
+                            // Contar status
                             if (link.status === 'online') {
                                 onlineCount++;
                             } else {
@@ -521,9 +606,17 @@ $linkIds = array_column($links, 'id');
                     }
                 });
                 
-                // Update counters
+                // Atualizar contadores
                 document.getElementById('onlineLinks').textContent = onlineCount;
                 document.getElementById('offlineLinks').textContent = offlineCount;
+                
+                // Atualizar status map
+                lastStatusMap = newStatusMap;
+                
+                // Reordenar se houver mudança de status
+                if (statusChanged) {
+                    reorderCards();
+                }
                 
             } catch (error) {
                 console.error('Error checking status:', error);
@@ -537,6 +630,48 @@ $linkIds = array_column($links, 'id');
             }
         }
 
+        // Função para reordenar os cards (offline primeiro)
+        function reorderCards() {
+            const container = document.getElementById('linksGrid');
+            const cards = Array.from(container.querySelectorAll('.link-card'));
+            
+            // Ordenar cards: offline primeiro, depois online, e ambos ordenados por nome
+            cards.sort((a, b) => {
+                const statusA = a.dataset.status;
+                const statusB = b.dataset.status;
+                const nameA = a.querySelector('.link-name').textContent.toLowerCase();
+                const nameB = b.querySelector('.link-name').textContent.toLowerCase();
+                
+                // Offline vem antes de online
+                if (statusA === 'offline' && statusB !== 'offline') return -1;
+                if (statusA !== 'offline' && statusB === 'offline') return 1;
+                
+                // Mesmo status? Ordena por nome
+                return nameA.localeCompare(nameB);
+            });
+            
+            // Reinserir na ordem correta com animação
+            cards.forEach((card, index) => {
+                // Aplicar animação apenas se a posição mudou
+                card.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+                card.style.transform = `translateY(${index * 10}px)`;
+                card.style.opacity = '0';
+                
+                setTimeout(() => {
+                    container.appendChild(card);
+                    card.style.transform = 'translateY(0)';
+                    card.style.opacity = '1';
+                }, 50 * index);
+                
+                // Remover a transição após a animação
+                setTimeout(() => {
+                    card.style.transition = '';
+                    card.style.transform = '';
+                    card.style.opacity = '';
+                }, 500 + (50 * index));
+            });
+        }
+
         function startUpdateCycle() {
             updateInterval = setInterval(() => {
                 updateTime--;
@@ -548,6 +683,22 @@ $linkIds = array_column($links, 'id');
                 }
             }, 1000);
         }
+
+        // Adicionar animação para mudança de status
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes pulse-success {
+                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+                70% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+                100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            }
+            @keyframes pulse-error {
+                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+                70% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+                100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            }
+        `;
+        document.head.appendChild(style);
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
@@ -592,4 +743,3 @@ function getNomeEstado($uf) {
     ];
     return $estados[strtoupper($uf)] ?? 'Estado Desconhecido';
 }
-?>

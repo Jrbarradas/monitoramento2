@@ -1,72 +1,99 @@
 <?php
 session_start();
-require_once "config.php";
 
-// Configurar o fuso horário
-date_default_timezone_set('America/Sao_Paulo');
+// Ativar exibição de erros para depuração
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 // Verificar se o usuário está logado
-if (!isset($_SESSION['id'])) {
-    header("Location: login.php");
+if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+    header('Location: login.php');
     exit;
 }
 
-// Verificar permissões do usuário
-$is_admin = false;
+require_once "config.php";
+
+// Verificar conexão com o banco de dados
 try {
-    $stmt = $pdo->prepare("SELECT nivel_acesso FROM usuarios WHERE id = ?");
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->query("SELECT 1");
+} catch (PDOException $e) {
+    die("Erro na conexão com o banco de dados: " . $e->getMessage());
+}
+
+// Verificar se a tabela 'usuarios' existe
+try {
+    $stmt = $pdo->query("SHOW TABLES LIKE 'usuarios'");
+    if ($stmt->rowCount() === 0) {
+        die("Erro: A tabela 'usuarios' não foi encontrada no banco de dados. Por favor, crie a tabela primeiro.");
+    }
+} catch (PDOException $e) {
+    die("Erro ao verificar a existência da tabela: " . $e->getMessage());
+}
+
+// Verificar se o usuário atual é admin (consultando o banco)
+$is_admin = false;
+$estado_usuario = '';
+try {
+    $stmt = $pdo->prepare("SELECT nivel_acesso, estado_permitido FROM usuarios WHERE id = ?");
     $stmt->execute([$_SESSION['id']]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if ($user && $user['nivel_acesso'] === 'admin') {
-        $is_admin = true;
+    if ($user) {
+        $is_admin = ($user['nivel_acesso'] === 'admin');
+        $estado_usuario = $user['estado_permitido'] ?? '';
     }
 } catch (PDOException $e) {
     die("Erro ao verificar permissões: " . $e->getMessage());
 }
 
-// Variáveis iniciais
-$resultado = "";
-$classeStatus = "";
-$ip = "";
-$latencia = "";
+// Variável para mensagens de feedback
+$mensagem = '';
 
-// Processar o formulário
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $ip = htmlspecialchars($_POST["ip"]);
-    
-    // Comando ping mais detalhado
-    $command = (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
-        ? "ping -n 4 -w 1000 " . escapeshellarg($ip)
-        : "ping -c 4 -W 1 " . escapeshellarg($ip);
-    
-    exec($command, $output, $result);
-    
-    // Analisar resultado
-    if ($result === 0) {
-        $resultado = "ONLINE";
-        $classeStatus = "success";
-        
-        // Extrair latência média
-        foreach ($output as $line) {
-            if (preg_match('/time[<=](\d+\.?\d*)/', $line, $matches)) {
-                $latencia = $matches[1] . "ms";
-                break;
+// Processar exclusão de usuário, se o parâmetro 'excluir' estiver presente
+if (isset($_GET['excluir'])) {
+    if ($is_admin) {
+        $id = (int)$_GET['excluir'];
+        // Não permite excluir o usuário admin (id=1) ou o próprio usuário logado
+        if ($id > 0 && $id !== 1 && $id !== $_SESSION['id']) {
+            try {
+                $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
+                $stmt->execute([$id]);
+                
+                if ($stmt->rowCount() > 0) {
+                    $mensagem = '<div class="mensagem sucesso">Usuário excluído com sucesso!</div>';
+                    // Recarregar a lista de usuários
+                    $stmt = $pdo->query("SELECT id, username, nome_completo, nivel_acesso, estado_permitido, criado_em FROM usuarios ORDER BY id");
+                    $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                } else {
+                    $mensagem = '<div class="mensagem erro">Usuário não encontrado.</div>';
+                }
+            } catch (PDOException $e) {
+                $mensagem = '<div class="mensagem erro">Erro ao excluir usuário: ' . $e->getMessage() . '</div>';
             }
+        } else {
+            $mensagem = '<div class="mensagem erro">Não é possível excluir este usuário.</div>';
         }
     } else {
-        $resultado = "OFFLINE";
-        $classeStatus = "error";
-        $latencia = "N/A";
+        $mensagem = '<div class="mensagem erro">Acesso negado! Apenas administradores podem excluir usuários.</div>';
     }
 }
+
+// Buscar todos os usuários
+$usuarios = [];
+try {
+    $stmt = $pdo->query("SELECT id, username, nome_completo, nivel_acesso, estado_permitido, criado_em FROM usuarios ORDER BY id");
+    $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $mensagem = '<div class="mensagem erro">Erro ao carregar usuários: ' . $e->getMessage() . '</div>';
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste de Ping - Spacecom</title>
+    <title>Gerenciamento de Usuários - Spacecom</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -95,6 +122,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
             color: var(--text-primary);
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .header {
@@ -315,219 +343,140 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .card {
-            max-width: 700px;
-            margin: 20px auto;
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.02), transparent);
-            transition: left 0.8s;
-        }
-
-        .card:hover::before {
-            left: 100%;
-        }
-
-        .form-container {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        label {
-            display: block;
-            font-size: 0.95rem;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            font-weight: 500;
-            letter-spacing: 0.025em;
-        }
-
-        .input-with-icon {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 18px;
-            color: var(--success);
-            font-size: 1.2rem;
-            z-index: 1;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 16px 20px 16px 50px;
-            border: 1px solid var(--glass-border);
             border-radius: 12px;
-            font-size: 1rem;
-            background: rgba(15, 23, 42, 0.5);
-            color: var(--text-primary);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(10px);
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
-        .input-field:focus {
-            border-color: var(--success);
-            background: rgba(15, 23, 42, 0.8);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-            outline: none;
-            transform: translateY(-2px);
-        }
-
-        .input-field::placeholder {
-            color: var(--text-secondary);
-            opacity: 0.7;
-        }
-
-        .alert {
-            border-left: 4px solid transparent;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 25px 0;
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-weight: 500;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .alert::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-            transition: left 0.8s;
-        }
-
-        .alert:hover::before {
-            left: 100%;
-        }
-
-        .alert.success {
-            border-color: var(--success);
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
-        }
-
-        .alert.error {
-            border-color: var(--error);
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--error);
-            box-shadow: 0 8px 16px rgba(239, 68, 68, 0.2);
-        }
-
-        .result-details {
-            margin-top: 15px;
-            padding: 15px;
-            background: rgba(15, 23, 42, 0.3);
-            border-radius: 8px;
-            border: 1px solid var(--glass-border);
-        }
-
-        .result-item {
+        .card-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-
-        .result-label {
-            color: var(--text-secondary);
-        }
-
-        .result-value {
-            font-weight: 600;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-            justify-content: center;
-        }
-
-        .button {
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            font-size: 1rem;
-            text-decoration: none;
-            position: relative;
-            overflow: hidden;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        .button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .button:hover::before {
-            left: 100%;
-        }
-
-        .button.primary {
-            background: linear-gradient(135deg, var(--success), #059669);
-            color: white;
-            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
-        }
-
-        .button.secondary {
-            background: var(--secondary-dark);
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
             color: var(--text-primary);
-            border: 1px solid var(--glass-border);
+            background: linear-gradient(135deg, var(--text-primary), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        .btn-novo {
+            padding: 10px 20px;
+            background: var(--success);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
         }
 
-        .button.primary:hover {
-            box-shadow: 0 12px 24px rgba(16, 185, 129, 0.4);
+        .btn-novo:hover {
+            background: #0da271;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
         }
 
-	
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        table th {
+            background: rgba(30, 41, 59, 0.5);
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .acoes {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-acao {
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .btn-editar {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+        }
+
+        .btn-excluir {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .btn-acao:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .nivel-admin {
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        .nivel-operador {
+            color: var(--warning);
+            font-weight: 500;
+        }
+
+        .mensagem {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .mensagem.sucesso {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--success);
+        }
+
+        .mensagem.erro {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--error);
+        }
+
+        .mensagem.aviso {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid var(--warning);
+        }
+
 	.footer {
 	    position: fixed;
 	    bottom: 0;
@@ -548,8 +497,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 	    z-index: 1000;
 	}
 
+        .update-counter {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--success);
+            font-weight: 500;
+        }
 
+        /* Responsividade */
         @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.4rem;
+            }
+
             .content {
                 margin: 100px 15px 80px;
             }
@@ -558,13 +526,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 margin-left: 15px;
             }
 
-            .card {
-                margin: 20px;
-                padding: 30px 25px;
+            .card-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
             }
 
-            .form-actions {
+            .btn-novo {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .acoes {
                 flex-direction: column;
+                gap: 5px;
             }
         }
     </style>
@@ -578,7 +555,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <span></span>
             </div>
         </button>
-        <h1>Verificação Status</h1>
+        <h1>Gerenciamento de Usuários</h1>
     </div>
 
     <div class="sidebar" id="sidebar">
@@ -587,12 +564,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="sidebar-subtitle">Sistema de Monitoramento</div>
         </div>
         <nav class="nav-menu">
-            <div class="nav-item">
-                <a href="index.php" class="nav-link">
-                    <div class="nav-icon"><i class="fas fa-home"></i></div>
-                    <div class="nav-text">Dashboard</div>
-                </a>
-            </div>
             <?php if ($is_admin): ?>
             <div class="nav-item">
                 <a href="cadastrar.php" class="nav-link">
@@ -610,7 +581,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             <?php endif; ?>
             <div class="nav-item">
-                <a href="teste_ping.php" class="nav-link active">
+                <a href="teste_ping.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-network-wired"></i></div>
                     <div class="nav-text">Verificação de Status</div>
                 </a>
@@ -650,70 +621,70 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <div class="content">
+        <?php echo $mensagem; ?>
+        
         <div class="card">
-            <div class="form-container">
-                <form method="POST" id="pingForm">
-                    <div class="form-group">
-                        <label>Endereço IP ou Domínio para Teste</label>
-                        <div class="input-with-icon">
-                            <i class="fas fa-network-wired input-icon"></i>
-                            <input class="input-field" type="text" name="ip" required 
-                                placeholder="Ex: 192.168.1.1 ou google.com"
-                                value="<?= htmlspecialchars($ip) ?>">
-                        </div>
-                    </div>
-
-                    <?php if(!empty($resultado)): ?>
-                    <div class="alert <?= $classeStatus ?>">
-                        <i class="fas fa-<?= ($resultado == 'ONLINE') ? 'check-circle' : 'exclamation-circle' ?>"></i>
-                        <div>
-                            <div>Host <?= htmlspecialchars($ip) ?> está <strong><?= $resultado ?></strong></div>
-                            <?php if($resultado == 'ONLINE'): ?>
-                            <div class="result-details">
-                                <div class="result-item">
-                                    <span class="result-label">Latência:</span>
-                                    <span class="result-value"><?= $latencia ?></span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Status:</span>
-                                    <span class="result-value" style="color: var(--success);">Conectado</span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Timestamp:</span>
-                                    <span class="result-value"><?= date('d/m/Y H:i:s') ?></span>
-                                </div>
-                            </div>
-                            <?php else: ?>
-                            <div class="result-details">
-                                <div class="result-item">
-                                    <span class="result-label">Status:</span>
-                                    <span class="result-value" style="color: var(--error);">Sem resposta</span>
-                                </div>
-                                <div class="result-item">
-                                    <span class="result-label">Timestamp:</span>
-                                    <span class="result-value"><?= date('d/m/Y H:i:s') ?></span>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-
-                    <div class="form-actions">
-                        <button type="submit" class="button primary" id="submitButton">
-                            <i class="fas fa-satellite-dish"></i> Executar Teste
-                        </button>
-                        <a href="index.php" class="button secondary">
-                            <i class="fas fa-arrow-left"></i> Voltar
-                        </a>
-                    </div>
-                </form>
+            <div class="card-header">
+                <h2 class="card-title">Lista de Usuários</h2>
+                <?php if ($is_admin): ?>
+                    <a href="cadastrar_usuario.php" class="btn-novo">
+                        <i class="fas fa-plus"></i> Novo Usuário
+                    </a>
+                <?php endif; ?>
             </div>
+            
+            <?php if (empty($usuarios)): ?>
+                <div class="mensagem aviso">
+                    Nenhum usuário cadastrado.
+                </div>
+            <?php else: ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuário</th>
+                            <th>Nome Completo</th>
+                            <th>Nível de Acesso</th>
+                            <th>Estado Permitido</th>
+                            <th>Data de Criação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($usuarios as $usuario): ?>
+                            <tr>
+                                <td><?= $usuario['id'] ?></td>
+                                <td><?= htmlspecialchars($usuario['username']) ?></td>
+                                <td><?= htmlspecialchars($usuario['nome_completo']) ?></td>
+                                <td>
+                                    <span class="nivel-<?= $usuario['nivel_acesso'] ?>">
+                                        <?= ucfirst($usuario['nivel_acesso']) ?>
+                                    </span>
+                                </td>
+                                <td><?= $usuario['estado_permitido'] ?? '-' ?></td>
+                                <td><?= date('d/m/Y H:i', strtotime($usuario['criado_em'])) ?></td>
+                                <td class="acoes">
+                                    <a href="editar_usuario.php?id=<?= $usuario['id'] ?>" class="btn-acao btn-editar">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </a>
+                                    <?php if ($is_admin && $usuario['id'] != 1 && $usuario['id'] != $_SESSION['id']): ?>
+                                        <a href="usuarios.php?excluir=<?= $usuario['id'] ?>" 
+                                           class="btn-acao btn-excluir"
+                                           onclick="return confirm('Tem certeza que deseja excluir este usuário?')">
+                                            <i class="fas fa-trash"></i> Excluir
+                                        </a>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
         </div>
     </div>
 
     <div class="footer">
-        Spacecom Monitoramento S/A © 2025
+        <span>Spacecom Monitoramento S/A © 2025</span>
     </div>
 
     <script>
@@ -726,7 +697,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             sidebar.classList.toggle('open');
         });
 
-        // Close sidebar when clicking outside
+        // Fechar o menu ao clicar fora
         document.addEventListener('click', (e) => {
             if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
                 menuToggle.classList.remove('active');
@@ -734,28 +705,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         });
 
-        // Form enhancements
-        document.querySelector('.input-field').addEventListener('focus', function() {
-            this.parentElement.parentElement.classList.add('focused');
-        });
-
-        document.querySelector('.input-field').addEventListener('blur', function() {
-            this.parentElement.parentElement.classList.remove('focused');
-        });
-
-        // Auto-focus on input field
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelector('.input-field').focus();
-        });
-
-        // Show loading indicator during form submission
-        const form = document.getElementById('pingForm');
-        const submitButton = document.getElementById('submitButton');
-
-        form.addEventListener('submit', function() {
-            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Executando...';
-            submitButton.disabled = true;
-        });
     </script>
 </body>
 </html>

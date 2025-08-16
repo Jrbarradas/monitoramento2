@@ -1,6 +1,36 @@
 <?php
+session_start();
 require_once "config.php";
-$links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_ASSOC);
+
+// Verificar se o usuário está logado
+if (!isset($_SESSION['id'])) {
+    header("Location: login.php");
+    exit;
+}
+
+// Verificar se o usuário é admin
+$is_admin = false;
+$estado_usuario = $_SESSION['estado'] ?? '';
+try {
+    $stmt = $pdo->prepare("SELECT nivel_acesso FROM usuarios WHERE id = ?");
+    $stmt->execute([$_SESSION['id']]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($user) {
+        $is_admin = ($user['nivel_acesso'] === 'admin');
+    }
+} catch (PDOException $e) {
+    die("Erro ao verificar permissões: " . $e->getMessage());
+}
+
+// Consulta para obter links com filtro por estado
+if ($is_admin) {
+    $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $stmt = $pdo->prepare("SELECT * FROM links WHERE uf = ? ORDER BY nome");
+    $stmt->execute([$estado_usuario]);
+    $links = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -366,51 +396,6 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
             background: rgba(16, 185, 129, 0.05);
         }
 
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 10px;
-            position: relative;
-        }
-
-        .status-cell {
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-        }
-
-        .online .status-indicator {
-            background: var(--success);
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-        }
-
-        .offline .status-indicator {
-            background: var(--error);
-            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
-            animation: pulse-red 2s infinite;
-        }
-
-        @keyframes pulse-red {
-            0%, 100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.7;
-                transform: scale(1.1);
-            }
-        }
-
-        .online .status-text {
-            color: var(--success);
-        }
-
-        .offline .status-text {
-            color: var(--error);
-        }
-
         .action-buttons {
             display: flex;
             gap: 8px;
@@ -496,13 +481,18 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
             bottom: 0;
             left: 0;
             right: 0;
+            height: 40px;
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border-top: 1px solid var(--glass-border);
             color: var(--text-secondary);
-            padding: 20px 30px;
-            font-size: 0.9rem;
+            padding: 8px 0px;
+            font-size: 0.8rem;
             text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
             z-index: 1000;
         }
 
@@ -540,6 +530,26 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
                 gap: 4px;
             }
         }
+
+        .link-row {
+            transition: all 0.5s ease;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.95); }
+        }
+
+        @keyframes fadeOutRight {
+            to {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+        }
+
+        tr {
+            transition: all 0.5s ease;
+        }
     </style>
 </head>
 <body>
@@ -551,7 +561,7 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
                 <span></span>
             </div>
         </button>
-        <h1>Lista de Links</h1>
+        <h1>Gerenciamento de Links</h1>
     </div>
 
     <div class="sidebar" id="sidebar">
@@ -560,40 +570,63 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
             <div class="sidebar-subtitle">Sistema de Monitoramento</div>
         </div>
         <nav class="nav-menu">
-            <div class="nav-item">
+	    <div class="nav-item">
                 <a href="index.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-home"></i></div>
                     <div class="nav-text">Dashboard</div>
                 </a>
             </div>
+	    <?php if ($is_admin): ?>
             <div class="nav-item">
                 <a href="cadastrar.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
-                    <div class="nav-text">Cadastrar Link</div>
+                    <div class="nav-text">Adicionar Novo Link</div>
                 </a>
             </div>
+            <?php endif; ?>
+            <?php if ($is_admin): ?>
             <div class="nav-item">
-                <a href="list_links.php" class="nav-link active">
+                <a href="list_links.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-list"></i></div>
-                    <div class="nav-text">Lista de Links</div>
+                    <div class="nav-text">Gerenciamento de Links</div>
                 </a>
             </div>
+            <?php endif; ?>
             <div class="nav-item">
                 <a href="teste_ping.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-network-wired"></i></div>
-                    <div class="nav-text">Teste de Ping</div>
+                    <div class="nav-text">Verificação de Status</div>
                 </a>
             </div>
+            <?php if ($is_admin): ?>
             <div class="nav-item">
                 <a href="mapa.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-map-marked-alt"></i></div>
                     <div class="nav-text">Mapa da Rede</div>
                 </a>
             </div>
+            <?php endif; ?>
+            <?php if ($is_admin): ?>
             <div class="nav-item">
                 <a href="historico.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-history"></i></div>
-                    <div class="nav-text">Histórico</div>
+                    <div class="nav-text">Logs de Monitoramento</div>
+                </a>
+            </div>
+            <?php endif; ?>
+            <?php if ($is_admin): ?>
+                <div class="nav-item">
+                    <a href="usuarios.php" class="nav-link">
+                        <div class="nav-icon"><i class="fas fa-users"></i></div>
+                        <div class="nav-text">Administração de Usuários</div>
+                    </a>
+                </div>
+            <?php endif; ?>
+
+            <div class="nav-item">
+                <a href="logout.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
+                    <div class="nav-text">Logout</div>
                 </a>
             </div>
         </nav>
@@ -602,7 +635,7 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
     <div class="content">
         <div class="card">
             <div class="card-header">
-                <h2 class="card-title">Gerenciamento de Links</h2>
+                <h2 class="card-title"></h2>
                 <div class="search-container">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" class="search-input" id="searchInput" placeholder="Buscar links...">
@@ -618,7 +651,6 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
                             <th>Endereço</th>
                             <th>UF</th>
                             <th>Contato</th>
-                            <th>Status</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -644,12 +676,6 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
                             <td>
                                 <div class="view-mode"><?= htmlspecialchars($link['contato']) ?></div>
                                 <input class="edit-form" name="contato" value="<?= htmlspecialchars($link['contato']) ?>">
-                            </td>
-                            <td>
-                                <div class="status-cell">
-                                    <span class="status-indicator" data-ip="<?= $link['ip'] ?>"></span>
-                                    <span class="status-text">Verificando...</span>
-                                </div>
                             </td>
                             <td>
                                 <div class="action-buttons">
@@ -712,29 +738,6 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
             });
         });
 
-        // Status checking
-        document.querySelectorAll('.status-indicator').forEach(indicator => {
-            const checkStatus = async () => {
-                try {
-                    const response = await fetch(`ping.php?ip=${encodeURIComponent(indicator.dataset.ip)}`);
-                    const data = await response.json();
-                    
-                    const row = indicator.closest('tr');
-                    const statusText = row.querySelector('.status-text');
-                    
-                    row.classList.remove('online', 'offline');
-                    row.classList.add(data.status);
-                    
-                    statusText.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
-                } catch (error) {
-                    console.error('Error checking status:', error);
-                }
-            };
-            
-            checkStatus();
-            setInterval(checkStatus, 15000);
-        });
-
         // Edit functionality
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -752,21 +755,37 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
                 const inputs = row.querySelectorAll('.edit-form');
                 const data = {
                     id: row.dataset.id,
-                    nome: inputs[0].value,
-                    ip: inputs[1].value,
-                    endereco: inputs[2].value,
-                    uf: inputs[3].value,
-                    contato: inputs[4].value
+                    nome: inputs[0].value.trim(),
+                    ip: inputs[1].value.trim(),
+                    endereco: inputs[2].value.trim(),
+                    uf: inputs[3].value.trim().toUpperCase(),
+                    contato: inputs[4].value.trim()
                 };
+
+                // Validação básica no frontend
+                if (!data.nome || !data.ip || !data.uf || !data.contato) {
+                    alert('Preencha todos os campos obrigatórios.');
+                    return;
+                }
+
+                if (!/^([0-9]{1,3}\.){3}[0-9]{1,3}$/.test(data.ip)) {
+                    alert('IP inválido.');
+                    return;
+                }
+
+                // Feedback visual
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+                btn.disabled = true;
 
                 try {
                     const response = await fetch('editar_link.php', {
                         method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(data)
                     });
-                    
+
                     const result = await response.json();
+
                     if (result.success) {
                         inputs.forEach((input, index) => {
                             input.previousElementSibling.textContent = input.value;
@@ -774,16 +793,20 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
                         row.classList.remove('editing');
                         btn.style.display = 'none';
                         row.querySelector('.edit-btn').style.display = 'inline-flex';
-                        
-                        // Show success feedback
+
+                        // Feedback visual
                         btn.innerHTML = '<i class="fas fa-check"></i> Salvo!';
                         setTimeout(() => {
                             btn.innerHTML = '<i class="fas fa-save"></i> Salvar';
                         }, 2000);
+                    } else {
+                        throw new Error(result.message || 'Erro ao salvar alterações');
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('Erro ao salvar alterações');
+                    alert(error.message);
+                    btn.innerHTML = '<i class="fas fa-save"></i> Salvar';
+                    btn.disabled = false;
                 }
             });
         });
@@ -791,22 +814,43 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
         // Delete functionality
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
-                if (confirm('Tem certeza que deseja excluir este link permanentemente?')) {
+                if (confirm('Tem certeza que deseja excluir este link permanentemente? Esta ação também excluirá todo o histórico associado.')) {
                     const row = btn.closest('tr');
+                    const originalBtnHTML = btn.innerHTML;
+
                     try {
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Excluindo...';
+                        btn.disabled = true;
+
                         const response = await fetch('excluir_link.php', {
                             method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ id: row.dataset.id })
                         });
-                        
-                        if (response.ok) {
-                            row.style.animation = 'fadeOut 0.3s ease-out';
-                            setTimeout(() => row.remove(), 300);
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            btn.innerHTML = '<i class="fas fa-check"></i> Excluído!';
+                            btn.style.backgroundColor = '#10b981';
+
+                            row.style.opacity = '0';
+                            row.style.height = '0';
+                            row.style.padding = '0';
+                            row.style.margin = '0';
+                            row.style.border = 'none';
+                            row.style.overflow = 'hidden';
+                            row.style.transition = 'all 0.5s ease';
+
+                            setTimeout(() => row.remove(), 500);
+                        } else {
+                            throw new Error(result.message || 'Erro desconhecido ao excluir');
                         }
                     } catch (error) {
-                        console.error('Error:', error);
-                        alert('Erro ao excluir o link');
+                        console.error('Erro na exclusão:', error);
+                        btn.innerHTML = originalBtnHTML;
+                        btn.disabled = false;
+                        alert(`Erro: ${error.message}`);
                     }
                 }
             });
@@ -819,12 +863,5 @@ $links = $pdo->query("SELECT * FROM links ORDER BY nome")->fetchAll(PDO::FETCH_A
             });
         });
     </script>
-
-    <style>
-        @keyframes fadeOut {
-            from { opacity: 1; transform: scale(1); }
-            to { opacity: 0; transform: scale(0.95); }
-        }
-    </style>
 </body>
 </html>

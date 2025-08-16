@@ -1,0 +1,903 @@
+{
+    "44_168.228.218.53": {
+        "online": true,
+        "last_check": 1749501809,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 44,
+            "nome": "Link Anapolis - Tecnet",
+            "ip": "168.228.218.53",
+            "endereco": "Avenida Raimundo Carlos Costa e Silva, 0",
+            "cidade": "Anapolis",
+            "uf": "GO",
+            "contato": "62 4051-9024",
+            "updated_at": "2025-05-25 02:21:28"
+        }
+    },
+    "53_138.255.225.39": {
+        "online": true,
+        "last_check": 1749501809,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 53,
+            "nome": "Link Aquidauana - Gigarede",
+            "ip": "138.255.225.39",
+            "endereco": "RUA DUQUE DE CAXIAS, S\/N ",
+            "cidade": "",
+            "uf": "MS",
+            "contato": "67 32454609",
+            "updated_at": "2025-06-09 13:58:42"
+        }
+    },
+    "20_206.42.27.70": {
+        "online": true,
+        "last_check": 1749501809,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 20,
+            "nome": "Link Arcoverde - BRISANET",
+            "ip": "206.42.27.70",
+            "endereco": "R. Hilda Pacheco Magalh\u00e3es, 85",
+            "cidade": "Arcoverde",
+            "uf": "PE",
+            "contato": "84 8111-8525",
+            "updated_at": "2025-05-23 12:03:25"
+        }
+    },
+    "70_200.205.222.26": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 70,
+            "nome": "Link Barra Funda - Vivo",
+            "ip": "200.205.222.26",
+            "endereco": "Rua do Bosque, 1589",
+            "cidade": "Barra Funda ",
+            "uf": "SP",
+            "contato": "0800 015 1551",
+            "updated_at": "2025-05-26 00:53:02"
+        }
+    },
+    "61_190.109.65.151": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 61,
+            "nome": "Link Belo Horizonte - Blink",
+            "ip": "190.109.65.151",
+            "endereco": "Rua Al\u00e9m Para\u00edba N\u00ba 31",
+            "cidade": "Belo Horizonte",
+            "uf": "MG",
+            "contato": "31 4020-6261",
+            "updated_at": "2025-05-26 00:33:12"
+        }
+    },
+    "22_189.22.39.34": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 22,
+            "nome": "Link Campo Grande - Embratel",
+            "ip": "189.22.39.34",
+            "endereco": "Avenida Marechal Rondom, 229",
+            "cidade": "Campo Grande",
+            "uf": "MS",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-05-23 12:51:13"
+        }
+    },
+    "54_191.251.102.220": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 54,
+            "nome": "Link Campo Grande - Vivo",
+            "ip": "191.251.102.220",
+            "endereco": "Rua Marechal  Rondom, 269 ",
+            "cidade": "",
+            "uf": "MS",
+            "contato": "0800 015 1551",
+            "updated_at": "2025-06-09 13:39:29"
+        }
+    },
+    "21_206.42.27.45": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 21,
+            "nome": "Link Caruaru - BRISANET",
+            "ip": "206.42.27.45",
+            "endereco": "R. Esp\u00edrito Santo, 36",
+            "cidade": "Caruaru",
+            "uf": "PE",
+            "contato": "84 8111-8525",
+            "updated_at": "2025-05-23 12:05:47"
+        }
+    },
+    "55_201.159.91.14": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 55,
+            "nome": "Link Cassil\u00e2ndia - Abenet",
+            "ip": "201.159.91.14",
+            "endereco": "Rua Nestor Alves Barbosa, 66",
+            "cidade": "Cassil\u00e2ndia",
+            "uf": "MS",
+            "contato": "64 99887825",
+            "updated_at": "2025-05-26 00:21:39"
+        }
+    },
+    "56_187.109.124.83": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 56,
+            "nome": "Link Corumba - Circulanet",
+            "ip": "187.109.124.83",
+            "endereco": "RUA DELAMARE, 1391",
+            "cidade": "Coumba",
+            "uf": "MS",
+            "contato": " 67 991690135",
+            "updated_at": "2025-05-26 00:23:29"
+        }
+    },
+    "18_45.233.182.182": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 18,
+            "nome": "Link Cruzeiro do Sul - Unonet",
+            "ip": "45.233.182.182",
+            "endereco": "Av. Lauro M\u00fcller, 300",
+            "cidade": "",
+            "uf": "AC",
+            "contato": "68 99957-8647",
+            "updated_at": "2025-05-25 13:21:32"
+        }
+    },
+    "19_177.221.100.166": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 19,
+            "nome": "Link Cuiab\u00e1 - Quick",
+            "ip": "177.221.100.166",
+            "endereco": "Rua Marechal Floriano Peixoto, n\u00ba 85",
+            "cidade": "Cuiab\u00e1",
+            "uf": "MT",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-05-23 11:59:58"
+        }
+    },
+    "25_177.135.246.118": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 25,
+            "nome": "Link Cuiab\u00e1 - VIVO",
+            "ip": "177.135.246.118",
+            "endereco": "Rua Marechal Floriano Peixoto, n\u00ba 85",
+            "cidade": "Cuiab\u00e1",
+            "uf": "MT",
+            "contato": "0800 015 1551",
+            "updated_at": "2025-05-23 12:54:34"
+        }
+    },
+    "57_179.48.150.63": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 57,
+            "nome": "Link Dourados - Hokinet",
+            "ip": "179.48.150.63",
+            "endereco": "Rua Ciro Melo, 1614",
+            "cidade": "Dourados",
+            "uf": "MS",
+            "contato": "67 30327162",
+            "updated_at": "2025-05-26 00:25:03"
+        }
+    },
+    "28_189.127.189.108": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 28,
+            "nome": "Link Epitaciol\u00e2ndia - Govista",
+            "ip": "189.127.189.108",
+            "endereco": "Avenida Santos Dumont, 476",
+            "cidade": "Epitaciol\u00e2ndia",
+            "uf": "AC",
+            "contato": "68 9922-9318",
+            "updated_at": "2025-05-23 17:13:23"
+        }
+    },
+    "30_181.232.213.22": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": true,
+        "data": {
+            "id": 30,
+            "nome": "Link Feij\u00f3 - SDMNET",
+            "ip": "181.232.213.22",
+            "endereco": "Avenida Marechal Deodoro, 02 Q20",
+            "cidade": "Feij\u00f3",
+            "uf": "AC",
+            "contato": "68 98401-7935",
+            "updated_at": "2025-05-23 17:32:39"
+        }
+    },
+    "68_200.146.120.113": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 68,
+            "nome": "Link Florian\u00f3polis - Vivo",
+            "ip": "200.146.120.113",
+            "endereco": "Rua Fl\u00e1vio Aducci, 1214",
+            "cidade": "Florianopolis",
+            "uf": "SC",
+            "contato": "0800 015 1551",
+            "updated_at": "2025-05-26 00:47:51"
+        }
+    },
+    "45_189.6.22.210": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 45,
+            "nome": "Link Formosa - Claro",
+            "ip": "189.6.22.210",
+            "endereco": "AV VALERIANO DE CASTRO, 320",
+            "cidade": "Formosa",
+            "uf": "GO",
+            "contato": "0800 721 1021",
+            "updated_at": "2025-05-25 02:24:09"
+        }
+    },
+    "43_206.42.40.40": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 43,
+            "nome": "Link Fortaleza - Brisanet",
+            "ip": "206.42.40.40",
+            "endereco": "Rua Tenente Benavolo, 1055",
+            "cidade": "Fortaleza",
+            "uf": "CE",
+            "contato": "84 8111-8525",
+            "updated_at": "2025-05-25 02:18:29"
+        }
+    },
+    "38_201.57.91.81": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 38,
+            "nome": "Link Fortaleza - Embratel CE 02",
+            "ip": "201.57.91.81",
+            "endereco": "Rua Tenente Benavolo, 1055",
+            "cidade": "Fortaleza",
+            "uf": "CE",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-05-23 20:25:58"
+        }
+    },
+    "37_201.57.120.66": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 37,
+            "nome": "Link Fortaleza - Embratel CE01",
+            "ip": "201.57.120.66",
+            "endereco": "Rua Tenente Benavolo, 1055",
+            "cidade": "Fortaleza",
+            "uf": "CE",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-05-23 20:24:57"
+        }
+    },
+    "40_177.19.149.97": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 40,
+            "nome": "Link Fortaleza - Vivo",
+            "ip": "177.19.149.97",
+            "endereco": "Rua Gon\u00e7alves Ledo, 777",
+            "cidade": "Fortaleza",
+            "uf": "CE",
+            "contato": "0800 015 1551",
+            "updated_at": "2025-05-23 20:28:44"
+        }
+    },
+    "41_186.215.108.183": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 41,
+            "nome": "Link Fortaleza - Vivo 02",
+            "ip": "186.215.108.183",
+            "endereco": "Av. Her\u00e1clito Gra\u00e7a, 600",
+            "cidade": "Fortaleza",
+            "uf": "CE",
+            "contato": "0800 015 1551",
+            "updated_at": "2025-05-23 20:30:06"
+        }
+    },
+    "49_177.174.74.146": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 49,
+            "nome": "Link Goiania - Vivo",
+            "ip": "177.174.74.146",
+            "endereco": "AV PERIMETRAL, 2416",
+            "cidade": "Goiania",
+            "uf": "GO",
+            "contato": "0800 015 1551",
+            "updated_at": "2025-05-25 02:35:17"
+        }
+    },
+    "33_206.42.47.80": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 33,
+            "nome": "Link Iguatu - Brisanet",
+            "ip": "206.42.47.80",
+            "endereco": "Rua Quinze de Novembro, sn",
+            "cidade": "Iguatu",
+            "uf": "CE",
+            "contato": "84 8111-8525",
+            "updated_at": "2025-05-23 18:07:22"
+        }
+    },
+    "39_179.63.99.123": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 39,
+            "nome": "Link Itaitinga - Emtechnet",
+            "ip": "179.63.99.123",
+            "endereco": "Estr. Entrada da Granja, 111",
+            "cidade": "Itaitinga",
+            "uf": "CE",
+            "contato": "85 2181-6303",
+            "updated_at": "2025-05-23 20:27:37"
+        }
+    },
+    "34_206.42.47.81": {
+        "online": true,
+        "last_check": 1749501810,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 34,
+            "nome": "Link Itapipoca - Brisanet",
+            "ip": "206.42.47.81",
+            "endereco": "Avenida Anast\u00e1cio Braga, 2770",
+            "cidade": "Itapipoca",
+            "uf": "CE",
+            "contato": "84 8111-8525",
+            "updated_at": "2025-05-23 19:31:07"
+        }
+    },
+    "35_206.42.25.95": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 35,
+            "nome": "Link Juazeiro do Norte - Brisanet",
+            "ip": "206.42.25.95",
+            "endereco": "Rua das Flores, S\/N",
+            "cidade": "Juazeiro do Norte",
+            "uf": "CE",
+            "contato": "84 8111-8525",
+            "updated_at": "2025-05-23 20:21:14"
+        }
+    },
+    "46_170.233.24.79": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 46,
+            "nome": "Link Luiziania - Linfortel",
+            "ip": "170.233.24.79",
+            "endereco": "Rua19, Quadra 18",
+            "cidade": "Luiziania",
+            "uf": "GO",
+            "contato": "61 3620-2685",
+            "updated_at": "2025-05-25 02:27:27"
+        }
+    },
+    "58_170.84.217.78": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 58,
+            "nome": "Link Navirai - Melhornet",
+            "ip": "170.84.217.78",
+            "endereco": "Avenida Am\u00e9lia Fukuda, 611",
+            "cidade": "Navirai",
+            "uf": "MS",
+            "contato": "0800 883 6174",
+            "updated_at": "2025-05-26 00:26:31"
+        }
+    },
+    "62_177.36.13.249": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 62,
+            "nome": "Link Palmares - 1Telecom",
+            "ip": "177.36.13.249",
+            "endereco": "Rodovia Rodovia PE 096, Km 01",
+            "cidade": "Palmares",
+            "uf": "PE",
+            "contato": "55 3003-8411",
+            "updated_at": "2025-05-26 00:36:15"
+        }
+    },
+    "59_45.231.200.89": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": true,
+        "data": {
+            "id": 59,
+            "nome": "Link Paranaiba - Netfibra MS",
+            "ip": "45.231.200.89",
+            "endereco": "Rua Das Ac\u00e1cias, 1080",
+            "cidade": "Paranaiba",
+            "uf": "MS",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-05-26 00:28:21"
+        }
+    },
+    "47_45.235.44.152": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 47,
+            "nome": "Link Piracanjuba - SPNET",
+            "ip": "45.235.44.152",
+            "endereco": "RUA DAS PALMEIRAS QD.04 LT.09",
+            "cidade": "Piracanjuba",
+            "uf": "GO",
+            "contato": "64 99298-4099",
+            "updated_at": "2025-05-25 02:29:40"
+        }
+    },
+    "60_45.233.249.69": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 60,
+            "nome": "Link Ponta Por\u00e3 - PPR Evolutt",
+            "ip": "45.233.249.69",
+            "endereco": "Av. Baltazar Saldanha, 1650 ",
+            "cidade": "Ponta Por\u00e3",
+            "uf": "MS",
+            "contato": "67 99878-5555",
+            "updated_at": "2025-05-26 00:30:21"
+        }
+    },
+    "36_206.42.26.245": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 36,
+            "nome": "Link Quixada - Brisanet",
+            "ip": "206.42.26.245",
+            "endereco": "Rua Jose Juca, 116",
+            "cidade": "Quixada",
+            "uf": "CE",
+            "contato": "84 8111-8525",
+            "updated_at": "2025-05-23 20:23:16"
+        }
+    },
+    "63_187.103.68.213": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 63,
+            "nome": "Link Recife - 1Telecom",
+            "ip": "187.103.68.213",
+            "endereco": "Rua Gervasio Pires, 851",
+            "cidade": "Recife",
+            "uf": "PE",
+            "contato": "55 3003-8411",
+            "updated_at": "2025-05-26 00:39:36"
+        }
+    },
+    "64_201.39.195.146": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 64,
+            "nome": "Link Recife - Embratel",
+            "ip": "201.39.195.146",
+            "endereco": "Rua Gervasio Pires, 851",
+            "cidade": "Recife",
+            "uf": "PE",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-05-26 00:39:38"
+        }
+    },
+    "65_177.43.184.130": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": true,
+        "data": {
+            "id": 65,
+            "nome": "Link Recife - Vivo",
+            "ip": "177.43.184.130",
+            "endereco": "Rua Gervasio Pires, 851",
+            "cidade": "Recife",
+            "uf": "PE",
+            "contato": "0800 015 1551",
+            "updated_at": "2025-05-26 00:39:41"
+        }
+    },
+    "26_189.53.131.194": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 26,
+            "nome": "Link Rio Branco - Embratel",
+            "ip": "189.53.131.194",
+            "endereco": "Alameda Magn\u00f3lia, 69",
+            "cidade": "Rio Branco",
+            "uf": "AC",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-05-23 12:55:36"
+        }
+    },
+    "29_200.140.34.162": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 29,
+            "nome": "Link Rio Branco - OI",
+            "ip": "200.140.34.162",
+            "endereco": "Alameda Magn\u00f3lia, 69",
+            "cidade": "Rio Branco",
+            "uf": "AC",
+            "contato": "0800 031 8031",
+            "updated_at": "2025-05-23 17:21:30"
+        }
+    },
+    "27_201.23.237.144": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 27,
+            "nome": "Link Rio de Janeiro - MLS",
+            "ip": "201.23.237.144",
+            "endereco": "Pra\u00e7a Cristiano Otoni",
+            "cidade": "Rio de Janeiro",
+            "uf": "RJ",
+            "contato": "21 2538-8400",
+            "updated_at": "2025-05-23 15:02:25"
+        }
+    },
+    "67_200.218.242.161": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": true,
+        "data": {
+            "id": 67,
+            "nome": "Link Rio de Janeiro - TIXPERTS",
+            "ip": "200.218.242.161",
+            "endereco": "Pra\u00e7a Cristiano Ottoni, s\/n",
+            "cidade": "Rio de Janeiro",
+            "uf": "RJ",
+            "contato": "21 2532-1022",
+            "updated_at": "2025-05-26 00:44:51"
+        }
+    },
+    "48_200.108.170.123": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 48,
+            "nome": "Link S. Luiz dos Montes Belos - Lifein",
+            "ip": "200.108.170.123",
+            "endereco": "Rua Jurema, 0",
+            "cidade": "S\u00e3o Luiz dos Montes Belos",
+            "uf": "GO",
+            "contato": "0800 064 1440",
+            "updated_at": "2025-05-25 02:33:48"
+        }
+    },
+    "32_187.44.253.182": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 32,
+            "nome": "Link Salvador (Rua Coronel) - ITS BRASIL",
+            "ip": "187.44.253.182",
+            "endereco": "Rua Coronel Almerindo Rehem, 126",
+            "cidade": "Salvador",
+            "uf": "BA",
+            "contato": "71 3402-0800",
+            "updated_at": "2025-05-23 17:44:32"
+        }
+    },
+    "23_189.3.239.130": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 23,
+            "nome": "Link Salvador (Rua Mundo) - EMBRATEL",
+            "ip": "189.3.239.130",
+            "endereco": "Rua Mundo, 121",
+            "cidade": "Salvador",
+            "uf": "BA",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-05-23 12:52:19"
+        }
+    },
+    "31_187.44.176.246": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 31,
+            "nome": "Link Salvador (Rua Mundo) - ITS BRASIL",
+            "ip": "187.44.176.246",
+            "endereco": "Rua Mundo, 121",
+            "cidade": "Salvador",
+            "uf": "BA",
+            "contato": "71 3402-0800",
+            "updated_at": "2025-05-23 17:38:42"
+        }
+    },
+    "42_168.181.84.74": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 42,
+            "nome": "Link Sobral - Worldnet",
+            "ip": "168.181.84.74",
+            "endereco": "Rod. Mo\u00e9sio Loiola, km3",
+            "cidade": "Sobral",
+            "uf": "CE",
+            "contato": "88 992380923",
+            "updated_at": "2025-05-23 20:31:57"
+        }
+    },
+    "72_200.233.193.153": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 72,
+            "nome": "Link Spacecom - Algar",
+            "ip": "200.233.193.153",
+            "endereco": "RUA PROFESSOR PEDRO VIRIATO PARIGOT DE SOUZA, 3901",
+            "cidade": "",
+            "uf": "SPC",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-06-08 21:10:57"
+        }
+    },
+    "24_189.2.245.226": {
+        "online": true,
+        "last_check": 1749501811,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 24,
+            "nome": "Link Spacecom - Embratel",
+            "ip": "189.2.245.226",
+            "endereco": "RUA PROFESSOR PEDRO VIRIATO PARIGOT DE SOUZA, 3901",
+            "cidade": "",
+            "uf": "SPC",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-05-25 00:51:19"
+        }
+    },
+    "71_192.168.2.1": {
+        "online": false,
+        "last_check": 1749501811,
+        "offline_since": 1749501606,
+        "alert_sent": true,
+        "recovery_sent": false,
+        "data": {
+            "id": 71,
+            "nome": "Link Spacecom - Vivo",
+            "ip": "192.168.2.1",
+            "endereco": "RUA PROFESSOR PEDRO VIRIATO PARIGOT DE SOUZA, 3901",
+            "cidade": "",
+            "uf": "SPC",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-06-09 17:30:08"
+        }
+    },
+    "66_206.42.20.182": {
+        "online": true,
+        "last_check": 1749501814,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 66,
+            "nome": "Link Teresina - Brisanet",
+            "ip": "206.42.20.182",
+            "endereco": "BR 316, KM 7",
+            "cidade": "Teresina",
+            "uf": "PI",
+            "contato": "84 8111-8525",
+            "updated_at": "2025-05-26 00:42:48"
+        }
+    },
+    "71_192.168.2.0": {
+        "online": false,
+        "last_check": 1749501104,
+        "offline_since": 1749500944,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 71,
+            "nome": "Link Spacecom - Vivo",
+            "ip": "192.168.2.0",
+            "endereco": "RUA PROFESSOR PEDRO VIRIATO PARIGOT DE SOUZA, 3901",
+            "cidade": "",
+            "uf": "SPC",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-06-09 20:15:37"
+        }
+    },
+    "71_179.184.51.15": {
+        "online": true,
+        "last_check": 1749501598,
+        "offline_since": null,
+        "alert_sent": false,
+        "recovery_sent": false,
+        "data": {
+            "id": 71,
+            "nome": "Link Spacecom - Vivo",
+            "ip": "179.184.51.15",
+            "endereco": "RUA PROFESSOR PEDRO VIRIATO PARIGOT DE SOUZA, 3901",
+            "cidade": "",
+            "uf": "SPC",
+            "contato": "ti@spacecom.com.br",
+            "updated_at": "2025-06-09 20:31:42"
+        }
+    }
+}

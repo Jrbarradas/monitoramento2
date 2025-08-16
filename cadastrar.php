@@ -1,5 +1,27 @@
 <?php
+session_start();
 require_once "config.php";
+
+// Verificar se o usuário está logado
+if (!isset($_SESSION['id'])) {
+    header("Location: login.php");
+    exit;
+}
+
+// Verificar se o usuário é admin
+$is_admin = false;
+$estado_usuario = $_SESSION['estado'] ?? '';
+try {
+    $stmt = $pdo->prepare("SELECT nivel_acesso FROM usuarios WHERE id = ?");
+    $stmt->execute([$_SESSION['id']]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($user) {
+        $is_admin = ($user['nivel_acesso'] === 'admin');
+    }
+} catch (PDOException $e) {
+    die("Erro ao verificar permissões: " . $e->getMessage());
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
@@ -12,6 +34,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $lat = filter_input(INPUT_POST, 'lat', FILTER_VALIDATE_FLOAT);
         $lon = filter_input(INPUT_POST, 'lon', FILTER_VALIDATE_FLOAT);
 
+        // Validação adicional para não-admins
+        if (!$is_admin && $uf !== $estado_usuario) {
+            throw new Exception("Você só pode cadastrar links no seu estado ($estado_usuario)");
+        }
+
         $sql = "INSERT INTO links (nome, ip, endereco, cidade, uf, contato, lat, lon) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
@@ -19,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute([$nome, $ip, $endereco, $cidade, $uf, $contato, $lat, $lon]);
 
         $success = "Link cadastrado com sucesso!";
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         $error = "Erro ao cadastrar: " . $e->getMessage();
     }
 }
@@ -455,20 +482,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             color: var(--error);
         }
 
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid var(--glass-border);
-            color: var(--text-secondary);
-            padding: 20px 30px;
-            font-size: 0.9rem;
-            text-align: center;
-            z-index: 1000;
-        }
+		
+	.footer {
+	    position: fixed;
+	    bottom: 0;
+	    left: 0;
+	    right: 0;
+	    height: 40px;
+	    background: var(--glass-bg);
+	    backdrop-filter: blur(20px);
+	    border-top: 1px solid var(--glass-border);
+	    color: var(--text-secondary);
+	    padding: 8px 0px;
+	    font-size: 0.8rem;
+	    text-align: center;
+	    display: flex;
+	    justify-content: center;
+	    align-items: center;
+	    gap: 10px;
+	    z-index: 1000;
+	}
+
 
         @media (max-width: 768px) {
             .card {
@@ -508,7 +542,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <span></span>
             </div>
         </button>
-        <h1>Cadastrar Novo Link</h1>
+        <h1>Adicionar Novo Link</h1>
     </div>
 
     <div class="sidebar" id="sidebar">
@@ -523,34 +557,57 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="nav-text">Dashboard</div>
                 </a>
             </div>
+	    <?php if ($is_admin): ?>
             <div class="nav-item">
-                <a href="cadastrar.php" class="nav-link active">
+                <a href="cadastrar.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
-                    <div class="nav-text">Cadastrar Link</div>
+                    <div class="nav-text">Adicionar Novo Link</div>
                 </a>
             </div>
+            <?php endif; ?>
+            <?php if ($is_admin): ?>
             <div class="nav-item">
                 <a href="list_links.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-list"></i></div>
-                    <div class="nav-text">Lista de Links</div>
+                    <div class="nav-text">Gerenciamento de Links</div>
                 </a>
             </div>
+            <?php endif; ?>
             <div class="nav-item">
                 <a href="teste_ping.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-network-wired"></i></div>
-                    <div class="nav-text">Teste de Ping</div>
+                    <div class="nav-text">Verificação de Status</div>
                 </a>
             </div>
+            <?php if ($is_admin): ?>
             <div class="nav-item">
                 <a href="mapa.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-map-marked-alt"></i></div>
                     <div class="nav-text">Mapa da Rede</div>
                 </a>
             </div>
+            <?php endif; ?>
+            <?php if ($is_admin): ?>
             <div class="nav-item">
                 <a href="historico.php" class="nav-link">
                     <div class="nav-icon"><i class="fas fa-history"></i></div>
-                    <div class="nav-text">Histórico</div>
+                    <div class="nav-text">Logs de Monitoramento</div>
+                </a>
+            </div>
+            <?php endif; ?>
+            <?php if ($is_admin): ?>
+                <div class="nav-item">
+                    <a href="usuarios.php" class="nav-link">
+                        <div class="nav-icon"><i class="fas fa-users"></i></div>
+                        <div class="nav-text">Administração de Usuários</div>
+                    </a>
+                </div>
+            <?php endif; ?>
+
+            <div class="nav-item">
+                <a href="logout.php" class="nav-link">
+                    <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
+                    <div class="nav-text">Logout</div>
                 </a>
             </div>
         </nav>
@@ -610,10 +667,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
 
                     <div class="form-group" style="max-width: 150px">
-                        <label>UF</label>
+                        <label>UF *</label>
                         <i class="fas fa-flag input-icon"></i>
-                        <input class="input-field" type="text" name="uf" maxlength="3" required 
-                            placeholder="SP" style="text-transform: uppercase;">
+                        <?php if ($is_admin): ?>
+                            <select class="input-field" name="uf" required>
+                                <option value="">Selecione</option>
+                                <?php
+                                $estados = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+                                foreach ($estados as $uf) {
+                                    echo "<option value='$uf'>$uf</option>";
+                                }
+                                ?>
+                            </select>
+                        <?php else: ?>
+                            <input class="input-field" type="text" name="uf" value="<?= $estado_usuario ?>" readonly>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -665,11 +733,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 menuToggle.classList.remove('active');
                 sidebar.classList.remove('open');
             }
-        });
-
-        // Auto-uppercase UF field
-        document.querySelector('input[name="uf"]').addEventListener('input', function(e) {
-            e.target.value = e.target.value.toUpperCase();
         });
 
         // Form validation and enhancement
