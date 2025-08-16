@@ -1,177 +1,71 @@
 <?php
 session_start();
-
-if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-    header('Location: login.php');
-    exit;
-}
-
+require_once "includes/functions.php";
 require_once "config.php";
 
-// Verificar se o usuário é admin
-$is_admin = false;
-$estado_usuario = $_SESSION['estado_permitido'] ?? '';
-try {
-    $stmt = $pdo->prepare("SELECT nivel_acesso FROM usuarios WHERE id = ?");
-    $stmt->execute([$_SESSION['id']]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($user) {
-        $is_admin = ($user['nivel_acesso'] === 'admin');
-    }
-} catch (PDOException $e) {
-    die("Erro ao verificar permissões: " . $e->getMessage());
-}
+verificarLogin();
 
-// Consulta para obter links com filtro por estado
+$userInfo = verificarAdmin($pdo, $_SESSION['id']);
+$is_admin = $userInfo['is_admin'];
+$estado_usuario = $userInfo['estado_permitido'];
+
+// Get links based on user permissions
 if ($is_admin) {
-    $links = $pdo->query("SELECT id, uf, ip FROM links")->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $pdo->query("SELECT id, uf, ip FROM links ORDER BY uf, nome");
+    $links = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $totalLinks = $pdo->query("SELECT COUNT(*) FROM links")->fetchColumn();
 } else {
     $stmt = $pdo->prepare("SELECT id, uf, ip FROM links WHERE uf = ?");
     $stmt->execute([$estado_usuario]);
     $links = $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-// Consulta para total de links (apenas para admin)
-$totalLinks = 0;
-if ($is_admin) {
-    $totalLinks = $pdo->query("SELECT COUNT(*) FROM links")->fetchColumn();
-} else {
     $totalLinks = count($links);
 }
 
-// Agrupar links por estado
+// Group links by state
 $estados = [];
 if ($is_admin) {
     foreach ($links as $link) {
         $uf = $link['uf'];
         $estados[$uf][] = $link;
     }
-    // Ordenar estados alfabeticamente
     uksort($estados, function($a, $b) {
         return strcmp($a, $b);
     });
 } else {
-    // Não admin: apenas o estado do usuário
     $estados[$estado_usuario] = $links;
 }
+
+// Page configuration
+$pageTitle = 'Dashboard - Monitoramento Spacecom';
+$showStatusCounters = $is_admin;
+$showUpdateCounter = true;
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitoramento de Links Spacecom</title>
+    <meta name="description" content="Sistema de monitoramento de links em tempo real">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/index.css?v=<?= gerarHashCache('css/index.css') ?>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
-    <div class="header">
-        <button class="menu-toggle" id="menuToggle">
-            <div class="menu-icon">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </button>
-        <h1>Monitoramento de Links Spacecom</h1>
-        <div class="status-container">
-            <?php if ($is_admin): ?>
-                <div class="status-item online">
-                    <i class="fas fa-link"></i>
-                    <span id="total-online">0</span>
-                </div>
-            <?php endif; ?>
-            <?php if ($is_admin): ?>
-                <div class="status-item offline">
-                    <i class="fas fa-unlink"></i>
-                    <span id="total-offline">0</span>
-                </div>
-            <?php endif; ?>
-            <?php if ($is_admin): ?>
-                <div class="status-item total">
-                    <i class="fas fa-globe-americas"></i>
-                    <span id="total-links"><?= $totalLinks ?></span>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-title">Menu Principal</div>
-            <div class="sidebar-subtitle">Sistema de Monitoramento</div>
-        </div>
-        <nav class="nav-menu">
-            <div class="nav-item">
-                <a href="index.php" class="nav-link active">
-                    <div class="nav-icon"><i class="fas fa-home"></i></div>
-                    <div class="nav-text">Dashboard</div>
-                </a>
-            </div>
-            <?php if ($is_admin): ?>
-            <div class="nav-item">
-                <a href="cadastrar.php" class="nav-link">
-                    <div class="nav-icon"><i class="fas fa-plus-circle"></i></div>
-                    <div class="nav-text">Adicionar Novo Link</div>
-                </a>
-            </div>
-            <?php endif; ?>
-            <?php if ($is_admin): ?>
-            <div class="nav-item">
-                <a href="list_links.php" class="nav-link">
-                    <div class="nav-icon"><i class="fas fa-list"></i></div>
-                    <div class="nav-text">Gerenciamento de Links</div>
-                </a>
-            </div>
-            <?php endif; ?>
-            <div class="nav-item">
-                <a href="teste_ping.php" class="nav-link">
-                    <div class="nav-icon"><i class="fas fa-network-wired"></i></div>
-                    <div class="nav-text">Verificação de Status</div>
-                </a>
-            </div>
-            <?php if ($is_admin): ?>
-            <div class="nav-item">
-                <a href="mapa.php" class="nav-link">
-                    <div class="nav-icon"><i class="fas fa-map-marked-alt"></i></div>
-                    <div class="nav-text">Mapa da Rede</div>
-                </a>
-            </div>
-            <?php endif; ?>
-            <?php if ($is_admin): ?>
-            <div class="nav-item">
-                <a href="historico.php" class="nav-link">
-                    <div class="nav-icon"><i class="fas fa-history"></i></div>
-                    <div class="nav-text">Logs de Monitoramento</div>
-                </a>
-            </div>
-            <?php endif; ?>
-            <?php if ($is_admin): ?>
-                <div class="nav-item">
-                    <a href="usuarios.php" class="nav-link">
-                        <div class="nav-icon"><i class="fas fa-users"></i></div>
-                        <div class="nav-text">Administração de Usuários</div>
-                    </a>
-                </div>
-            <?php endif; ?>
-
-            <div class="nav-item">
-                <a href="logout.php" class="nav-link">
-                    <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
-                    <div class="nav-text">Logout</div>
-                </a>
-            </div>
-        </nav>
-    </div>
+    <?php include 'includes/header.php'; ?>
 
     <div class="content">
         <div class="cards-grid">
             <?php foreach ($estados as $uf => $linksEstado): ?>
                 <div class="state-card" 
                      data-uf="<?= htmlspecialchars($uf) ?>"
-                     data-ips="<?= htmlspecialchars(json_encode(array_column($linksEstado, 'ip'))) ?>"
-                     data-link-ids="<?= htmlspecialchars(json_encode(array_column($linksEstado, 'id'))) ?>">
+                     data-link-ids="<?= htmlspecialchars(json_encode(array_column($linksEstado, 'id'))) ?>"
+                     tabindex="0"
+                     role="button"
+                     aria-label="Ver detalhes do estado <?= htmlspecialchars($uf) ?>">
                     <i class="fas fa-exclamation-triangle alert-icon"></i>
                     <div class="state-name"><?= htmlspecialchars($uf) ?></div>
                     <div class="state-info"><?= count($linksEstado) ?> link(s)</div>
@@ -208,67 +102,178 @@ if ($is_admin) {
         </div>
     </div>
 
-    <div class="footer">
-        <span>Spacecom Monitoramento S/A © 2025</span>
-        <span class="update-counter" id="updateCounter">Atualizando em: 5s</span>
-    </div>
+    <?php include 'includes/footer.php'; ?>
 
-    <script>
-        // Menu Toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-
-        menuToggle.addEventListener('click', () => {
-            menuToggle.classList.toggle('active');
-            sidebar.classList.toggle('open');
-        });
-
-        // Close sidebar when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-                menuToggle.classList.remove('active');
-                sidebar.classList.remove('open');
-            }
-        });
-
-        // Modal functionality
+    <script defer>
+        // Modal functionality - Optimized
         const modalOverlay = document.getElementById('modalOverlay');
         const modalTitle = document.getElementById('modalTitle');
         const detailsBtn = document.getElementById('detailsBtn');
         const historyBtn = document.getElementById('historyBtn');
-        let currentUf = '';
-        let currentLinkIds = [];
 
         function openModal(uf, linkIds) {
-            currentUf = uf;
-            currentLinkIds = linkIds;
             modalTitle.textContent = `Estado: ${uf}`;
             detailsBtn.href = `detalhes_estado.php?uf=${encodeURIComponent(uf)}`;
-            historyBtn.href = `historico.php?uf=${encodeURIComponent(uf)}&link_ids=${encodeURIComponent(linkIds.join(','))}`;
+            historyBtn.href = `historico.php?uf=${encodeURIComponent(uf)}`;
             modalOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
         }
 
         function closeModal() {
             modalOverlay.classList.remove('show');
+            document.body.style.overflow = '';
         }
 
-        // Close modal when clicking overlay
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) {
                 closeModal();
             }
         });
 
-        // Close modal with Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeModal();
             }
         });
 
-        // Card click handlers
+        // Card event handlers - Optimized
+        function handleCardInteraction(card) {
+            const uf = card.dataset.uf;
+            const linkIds = JSON.parse(card.dataset.linkIds);
+            openModal(uf, linkIds);
+        }
+
+        document.addEventListener('click', (e) => {
+            const card = e.target.closest('.state-card');
+            if (card) {
+                handleCardInteraction(card);
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const card = e.target.closest('.state-card');
+                if (card) {
+                    e.preventDefault();
+                    handleCardInteraction(card);
+                }
+            }
+        });
+
+        // Status monitoring - Optimized
+        let updateTime = 5;
+        let isUpdating = false;
+        const stateCards = new Map();
+        
         document.querySelectorAll('.state-card').forEach(card => {
-            card.addEventListener('click', () => {
+            stateCards.set(card.dataset.uf, card);
+        });
+
+        async function checkStatusFast() {
+            if (isUpdating) return;
+            isUpdating = true;
+
+            try {
+                stateCards.forEach(card => card.classList.add('updating'));
+
+                const response = await fetch('api/status.php', {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+                const links = await response.json();
+
+                const statusByState = new Map();
+                let totalOnline = 0;
+                let totalOffline = 0;
+
+                // Process links efficiently
+                links.forEach(link => {
+                    const uf = link.uf;
+                    if (!statusByState.has(uf)) {
+                        statusByState.set(uf, { online: 0, offline: 0, hasOffline: false });
+                    }
+
+                    const stateStatus = statusByState.get(uf);
+                    if (link.status === 'online') {
+                        stateStatus.online++;
+                        totalOnline++;
+                    } else {
+                        stateStatus.offline++;
+                        stateStatus.hasOffline = true;
+                        totalOffline++;
+                    }
+                });
+
+                // Update UI efficiently
+                statusByState.forEach((status, uf) => {
+                    const card = stateCards.get(uf);
+                    if (card) {
+                        card.classList.remove('online', 'offline', 'updating');
+                        card.classList.add(status.hasOffline ? 'offline' : 'online');
+
+                        const infoElement = card.querySelector('.state-info');
+                        if (infoElement) {
+                            const total = status.online + status.offline;
+                            const offlineText = status.offline > 0 ? ` (${status.offline} offline)` : '';
+                            infoElement.textContent = `${total} link(s)${offlineText}`;
+                        }
+                    }
+                });
+
+                // Update counters if admin
+                <?php if ($is_admin): ?>
+                const onlineCounter = document.getElementById('total-online');
+                const offlineCounter = document.getElementById('total-offline');
+                if (onlineCounter) onlineCounter.textContent = totalOnline;
+                if (offlineCounter) offlineCounter.textContent = totalOffline;
+                <?php endif; ?>
+
+            } catch (error) {
+                console.error('Error checking status:', error);
+            } finally {
+                isUpdating = false;
+                stateCards.forEach(card => card.classList.remove('updating'));
+            }
+        }
+
+        function startUpdateCycle() {
+            const updateCounter = document.getElementById('updateCounter');
+            if (!updateCounter) return;
+
+            setInterval(() => {
+                updateTime--;
+                updateCounter.textContent = `Atualizando em: ${updateTime}s`;
+
+                if (updateTime <= 0) {
+                    updateTime = 5;
+                    checkStatusFast();
+                }
+            }, 1000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkStatusFast();
+            <?php if (isset($showUpdateCounter) && $showUpdateCounter): ?>
+            startUpdateCycle();
+            <?php endif; ?>
+        });
+
+        // Visibility API for performance
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                checkStatusFast();
+            }
+        });
+    </script>
+</body>
+</html>
+
                 const uf = card.dataset.uf;
                 const linkIds = JSON.parse(card.dataset.linkIds);
                 openModal(uf, linkIds);

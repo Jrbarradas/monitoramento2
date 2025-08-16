@@ -1,14 +1,11 @@
 <?php
 require_once "config.php";
 
-// Set proper headers
 header('Content-Type: application/json');
-header('Cache-Control: no-cache, must-revalidate');
+header('Cache-Control: no-cache, max-age=0');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
 
-// Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
@@ -17,53 +14,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $ip = filter_input(INPUT_GET, 'ip', FILTER_VALIDATE_IP);
 
 if (!$ip) {
+    http_response_code(400);
     echo json_encode([
         'status' => 'invalid',
-        'message' => 'Invalid IP address',
-        'ip' => $_GET['ip'] ?? 'not provided'
+        'message' => 'Endereço IP inválido',
+        'ip' => $_GET['ip'] ?? ''
     ]);
     exit;
 }
 
-// Enhanced ping function
+// Optimized ping function
 function performPing($ip) {
-    $output = [];
-    $result = -1;
     $startTime = microtime(true);
     
-    // Use different ping commands based on OS
     if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-        $command = "ping -n 3 -w 1000 " . escapeshellarg($ip);
+        $command = "ping -n 2 -w 2000 " . escapeshellarg($ip) . " 2>nul";
     } else {
-        $command = "ping -c 3 -W 1 " . escapeshellarg($ip);
+        $command = "ping -c 2 -W 2 " . escapeshellarg($ip) . " 2>/dev/null";
     }
     
+    $output = [];
     exec($command, $output, $result);
     $endTime = microtime(true);
     
-    // Calculate latency
-    $latency = round(($endTime - $startTime) * 1000, 2);
+    $latency = round(($endTime - $startTime) * 1000, 1);
+    $status = ($result === 0) ? 'online' : 'offline';
+    $packetLoss = ($result === 0) ? 0 : 100;
     
-    // Determine status
-    $status = 'offline';
-    $packetLoss = 100;
-    
-    if ($result === 0) {
+    // Extract more detailed info if online
+    if ($status === 'online') {
         $outputString = implode(' ', $output);
-        
-        // Extract packet loss percentage
         if (preg_match('/(\d+)% packet loss/', $outputString, $matches)) {
             $packetLoss = (int)$matches[1];
         }
-        
-        // Extract average latency if available
-        if (preg_match('/time[<=](\d+\.?\d*)/', $outputString, $matches)) {
+        if (preg_match('/time[<=](\d+\.?\d*)\s*ms/', $outputString, $matches)) {
             $latency = (float)$matches[1];
-        }
-        
-        // Consider online if packet loss is less than 100%
-        if ($packetLoss < 100) {
-            $status = 'online';
         }
     }
     
@@ -78,11 +63,17 @@ function performPing($ip) {
 
 try {
     $result = performPing($ip);
+    
+    // Log ping result for monitoring
+    error_log("Ping result for $ip: " . json_encode($result));
+    
     echo json_encode($result);
+    
 } catch (Exception $e) {
+    http_response_code(500);
     echo json_encode([
         'status' => 'error',
-        'message' => 'Ping failed: ' . $e->getMessage(),
+        'message' => 'Falha na verificação: ' . $e->getMessage(),
         'ip' => $ip
     ]);
 }
